@@ -1,4 +1,5 @@
 #include "mainwindow.h"
+#include "highlighter.h"
 #include "ui_mainwindow.h"
 #include <QMenuBar>
 #include <QToolBar>
@@ -180,13 +181,13 @@ void MainWindow::creatTool()
     underlineBtn->setIcon(QIcon(":/icon/icon/underline.png"));
     toolBar->addWidget(underlineBtn);
 
+    qDebug() << "addwidget";
     /************ 主体：文本编辑框 ************/
-
     textEdit = new QTextEdit;
-    this->setCentralWidget(textEdit);
-
+    this->setCentralWidget(textEdit);// 创建 Highlighter 的实例并将其与 textEdit 关联
+    Highlighter *highlighter = new Highlighter(textEdit->document());
+    qDebug() << "Highligher";
 }
-
 /************* 信号与槽的连接 *************/
 
 void MainWindow::connectImpl()

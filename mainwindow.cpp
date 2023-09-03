@@ -181,13 +181,18 @@ void MainWindow::creatTool()
     underlineBtn->setIcon(QIcon(":/icon/icon/underline.png"));
     toolBar->addWidget(underlineBtn);
 
-    qDebug() << "addwidget";
+//    qDebug() << "addwidget";
     /************ 主体：文本编辑框 ************/
     textEdit = new QTextEdit;
     this->setCentralWidget(textEdit);// 创建 Highlighter 的实例并将其与 textEdit 关联
     Highlighter *highlighter = new Highlighter(textEdit->document());
-    qDebug() << "Highligher";
+//    qDebug() << "Highligher";
+    QTextOption option = textEdit->document()->defaultTextOption();
+    option.setWrapMode(QTextOption::NoWrap);
+    textEdit->document()->setDefaultTextOption(option);
+
 }
+
 /************* 信号与槽的连接 *************/
 
 void MainWindow::connectImpl()

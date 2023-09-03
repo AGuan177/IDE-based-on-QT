@@ -8,6 +8,13 @@
 #include <QComboBox>
 #include <QToolButton>
 #include <QFontComboBox>
+#include <QToolBar>
+#include <QStatusBar>
+#include <QTextEdit>
+#include <QDebug>
+#include <QMenuBar>
+#include <QMenu>
+#include <QAction>
 
 class QLineEdit;
 class QDialog;
@@ -60,6 +67,12 @@ private:
     //单行输入框
     QLineEdit *findLineEdit;
 
+    QTabWidget *tab;
+    QTextEdit *te;
+    QString fileName;       //文件路径
+    int x;                  //横坐标
+    int y;                  //纵坐标
+
 //私有槽showFindText()声明
 private slots:
     //创建窗口控件函数
@@ -95,6 +108,8 @@ private slots:
     void setUnderline();
     //自定义槽函数-编译文件
     void compile_file();
+
+    void FileNew();
 
 };
 #endif // MAINWINDOW_H

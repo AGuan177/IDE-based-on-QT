@@ -93,6 +93,15 @@ void MainWindow::creatMenu()
     QMenu* fileMenu = menuBar->addMenu("文件");
     QMenu* EditMenu =menuBar->addMenu("编辑");
     QMenu* CompileMenu =menuBar->addMenu("编译");
+    QMenu* filenew =menuBar->addMenu("新建窗口");
+    QAction *file_new = new QAction(QIcon(":/.png"),"新建窗口");
+    filenew->addAction(file_new);
+
+    te = new QTextEdit;
+    this->setCentralWidget(te);
+    this->setMinimumSize(400,300);      //最小大小
+    this->resize(800,600);              //默认大小
+    connect(file_new,SIGNAL(triggered(bool)),this,SLOT(FileNew()));
 
 
     //向文件菜单中添加行为
@@ -261,6 +270,20 @@ void MainWindow::connectImpl()
     }
 
     /*************  自定义槽函数的实现 *************/
+//新建窗口
+void MainWindow::FileNew()
+{
+    qDebug()<<"新窗口";
+    x = 0;
+    y = 0;
+    x = this->geometry().x() + 25;
+    y = this->geometry().y() + 25;
+    MainWindow *bbq;               //新窗口
+    bbq = new MainWindow;
+    bbq->setWindowTitle("IDE");
+    bbq->move(x,y);
+    bbq->show();
+}
 
 //槽函数实现-新建文件
 void MainWindow::newFile(){

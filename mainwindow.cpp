@@ -444,7 +444,6 @@ void MainWindow::compile_file()
     }
     QString target = QString("cmd /k %1").arg(demo);
     system(codec->fromUnicode(target).data());
-    system("cmd");
 }
 
 

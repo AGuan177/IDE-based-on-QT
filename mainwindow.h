@@ -3,6 +3,7 @@
 
 #include <QMainWindow>
 #include <QTextEdit>
+#include <QPlainTextEdit>
 #include <QLabel>
 #include <QString>
 #include <QComboBox>
@@ -50,7 +51,7 @@ public:
     QToolButton* boldBtn;
     QToolButton* underlineBtn;
 
-    QTextEdit* textEdit;
+    QPlainTextEdit* textEdit;
     QTextCharFormat* tcf;
 
 private:

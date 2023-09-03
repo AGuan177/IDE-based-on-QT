@@ -192,7 +192,7 @@ void MainWindow::creatTool()
 
 //    qDebug() << "addwidget";
     /************ 主体：文本编辑框 ************/
-    textEdit = new QTextEdit;
+    textEdit = new QPlainTextEdit;
     this->setCentralWidget(textEdit);// 创建 Highlighter 的实例并将其与 textEdit 关联
     Highlighter *highlighter = new Highlighter(textEdit->document());
 //    qDebug() << "Highligher";
@@ -228,13 +228,13 @@ void MainWindow::connectImpl()
     connect(saveasfile,QAction::triggered,this,MainWindow::saveasFile);
 
     //信号与槽-复制 QTextEdit自带的copy()槽函数
-    connect(copyText,QAction::triggered,textEdit,QTextEdit::copy);
+    connect(copyText,QAction::triggered,textEdit,QPlainTextEdit::copy);
 
     //信号与槽-剪切 QTextEdit自带的cut()槽函数
-    connect(cutText,QAction::triggered,textEdit,QTextEdit::cut);
+    connect(cutText,QAction::triggered,textEdit,QPlainTextEdit::cut);
 
     //信号与槽-粘贴 QTextEdit自带的paste()槽函数
-    connect(pasteText,QAction::triggered,textEdit,QTextEdit::paste);
+    connect(pasteText,QAction::triggered,textEdit,QPlainTextEdit::paste);
 
     //信号与槽-搜索
     connect(seekText,QAction::triggered,[=]{
@@ -362,7 +362,7 @@ bool MainWindow::openFile(const QString &fileName)
     QFile f(fileName);
     if(f.open(QIODevice::ReadWrite)){
            QTextStream fout(&f);
-           textEdit->setText(fout.readAll());
+           textEdit->setPlainText(fout.readAll());
      }else{
            qDebug()<<"open file failed!";
            return false;
@@ -421,25 +421,30 @@ void MainWindow::setFontSize(int index)
 //槽函数实现-字体加粗
 void MainWindow::setBold()
 {
-    if(textEdit->fontWeight()>QFont::Normal){
-        tcf->setFontWeight(QFont::Normal);
-    }else{
-        tcf->setFontWeight(QFont::Bold);
-    }
-    textEdit->mergeCurrentCharFormat(*tcf);
+  QFont font = textEdit->font();
+
+  if(font.bold()) {
+    font.setBold(false);
+  } else {
+    font.setBold(true);
+  }
+
+  textEdit->setFont(font);
 }
 
 //槽函数实现-字体下划线
 void MainWindow::setUnderline()
 {
-    if(textEdit->fontUnderline()){
-         tcf->setFontUnderline(false);
-    }else {
-        tcf->setFontUnderline(true);
-    }
-    textEdit->mergeCurrentCharFormat(*tcf);
-}
+  QFont font = textEdit->font();
 
+  if(font.underline()) {
+    font.setUnderline(false);
+  } else {
+    font.setUnderline(true);
+  }
+
+  textEdit->setFont(font);
+}
 void MainWindow::compile_file()
 {
     if(path.isEmpty())

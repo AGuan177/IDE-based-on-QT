@@ -44,7 +44,7 @@ MainWindow::MainWindow(QWidget *parent)
     // 初始化文件为未保存状态
     isUnititled = true;
     // 初始化文件名为".c"
-    curFile = tr(".c");
+    curFile = tr("IDE");
     // 初始化窗口标题为文件名
     setWindowTitle(curFile);
 

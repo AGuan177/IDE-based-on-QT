@@ -34,7 +34,7 @@ icon资源获取：https://www.iconfinder.com/
 关键字高亮官方文档：https://doc.qt.io/qt-6/qtwidgets-richtext-syntaxhighlighter-example.html  
 关键字高亮相关注解：https://blog.csdn.net/hitzsf/article/details/109019495  
 Qt TextEdit取消换行：https://blog.csdn.net/qq_45662588/article/details/120682996  
-Scintilla开源库使用指南：https://blog.csdn.net/mikasoi/article/details/87544502
+Scintilla开源库使用指南：https://blog.csdn.net/mikasoi/article/details/87544502  
 QScintilla的安装和部分使用：https://www.cnblogs.com/tuilk/archive/2022/03/12/15995711.html  
 QScintilla文档参考：https://qscintilla.com/#home  
  

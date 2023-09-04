@@ -24,7 +24,7 @@
     1.想要实现函数以及循环/判断语句折叠
     2.想要实现断点等编译功能的完善
     3.想要实现chatgpt的接口连接，利用chat帮助IDE使用者进行代码纠错等
-    4.想要实现多编辑器的可选择性
+    4.想要实现多编译器的可选择性
 
 ## 网址集成
 github地址：https://github.com/BITShengMinglei/IDE.git  

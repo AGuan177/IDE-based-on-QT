@@ -118,6 +118,8 @@ void MainWindow::creatMenu()
     seekText = EditMenu->addAction(QIcon(":/icon/icon/seek.png"),"查找文本");
     EditMenu->addSeparator();
     fontSet = EditMenu->addAction(QIcon(":/icon/icon/fontSet.png"),"字体设置");
+    undoe = EditMenu->addAction(QIcon(":/.png"),"撤销");
+    redoe = EditMenu->addAction(QIcon(":/.png"),"重做");
 
     //向编译菜单中添加行为
     compilefile = CompileMenu->addAction(QIcon(":/icon/icon/copy.png"),"编译");
@@ -267,9 +269,22 @@ void MainWindow::connectImpl()
 
     //信号与槽-文件编译
     connect(compilefile,QAction::triggered,this,MainWindow::compile_file);
-    }
+    connect(undoe,QAction::triggered,this,MainWindow::undo);
+    connect(redoe,QAction::triggered,this,MainWindow::redo);
+}
 
     /*************  自定义槽函数的实现 *************/
+
+void MainWindow::undo()
+{
+    textEdit->undo();
+}
+
+void MainWindow::redo()
+{
+    textEdit->redo();
+}
+
 //新建窗口
 void MainWindow::FileNew()
 {

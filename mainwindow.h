@@ -43,6 +43,8 @@ public:
     QAction* seekText;
     QAction* fontSet;
     QAction* compilefile;
+    QAction* undoe;
+    QAction* redoe;
 
     QLabel* fontTypeLabel;
     QFontComboBox* fontTypeCmb;
@@ -111,6 +113,8 @@ private slots:
     void compile_file();
 
     void FileNew();
+    void undo();
+    void redo();
 
 };
 #endif // MAINWINDOW_H

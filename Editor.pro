@@ -19,16 +19,19 @@ SOURCES += \
     main.cpp \
     mainwindow.cpp \
     highlighter.cpp \
-    tree.cpp
+    tree.cpp \
+    background.cpp
 
 HEADERS += \
     mainwindow.h \
     highlighter.h \
-    tree.h
+    tree.h \
+    background.h
 
 FORMS += \
     mainwindow.ui \
-    tree.ui
+    tree.ui \
+    background.ui
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

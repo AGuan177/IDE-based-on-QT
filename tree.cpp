@@ -11,10 +11,10 @@ Tree::Tree(QWidget *parent)
 {
     ui->setupUi(this);
 
-        QString rootpath="D:/first";                //路径 D:\first  qt中正斜杠"/" 反斜杠"\"
+        QString rootpath="D:/QQ";                //路径 D:\first  qt中正斜杠"/" 反斜杠"\"
          QTreeWidgetItem* root = new QTreeWidgetItem(ui->tree);
         //root->setCheckState(0, Qt::Checked);
-        root->setText(0,"D:/first");
+        root->setText(0,"D:/QQ");
         QFileInfoList lists= allfile(root,rootpath);        //遍历文件夹
 
 

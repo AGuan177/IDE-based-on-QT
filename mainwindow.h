@@ -1,6 +1,6 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
-
+#include <Qsci/qsciscintilla.h>
 #include <QMainWindow>
 #include <QTextEdit>
 #include <QPlainTextEdit>
@@ -53,7 +53,7 @@ public:
     QToolButton* boldBtn;
     QToolButton* underlineBtn;
 
-    QPlainTextEdit* textEdit;
+    QsciScintilla* textEdit;
     QTextCharFormat* tcf;
 
 private:

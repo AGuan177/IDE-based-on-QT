@@ -1,5 +1,5 @@
+#include <Qsci/qsciscintilla.h>
 #include "mainwindow.h"
-#include "highlighter.h"
 #include "ui_mainwindow.h"
 #include <QMenuBar>
 #include <QToolBar>
@@ -194,13 +194,9 @@ void MainWindow::creatTool()
 
 //    qDebug() << "addwidget";
     /************ 主体：文本编辑框 ************/
-    textEdit = new QPlainTextEdit;
+    textEdit = new QsciScintilla;
     this->setCentralWidget(textEdit);// 创建 Highlighter 的实例并将其与 textEdit 关联
-    Highlighter *highlighter = new Highlighter(textEdit->document());
 //    qDebug() << "Highligher";
-    QTextOption option = textEdit->document()->defaultTextOption();
-    option.setWrapMode(QTextOption::NoWrap);
-    textEdit->document()->setDefaultTextOption(option);
 
 }
 
@@ -229,14 +225,30 @@ void MainWindow::connectImpl()
     //信号与槽-文件另存为
     connect(saveasfile,QAction::triggered,this,MainWindow::saveasFile);
 
-    //信号与槽-复制 QTextEdit自带的copy()槽函数
-    connect(copyText,QAction::triggered,textEdit,QPlainTextEdit::copy);
+    // 信号与槽-复制
+//    connect(copyText, &QAction::triggered, textEdit, &QsciScintilla::copy);
 
-    //信号与槽-剪切 QTextEdit自带的cut()槽函数
-    connect(cutText,QAction::triggered,textEdit,QPlainTextEdit::cut);
+    // 连接按钮的点击信号到槽函数
+    connect(copyText, &QAction::triggered, this, [=]() {
+        // 执行QScintilla的复制操作
+        textEdit->copy();
+    });
 
-    //信号与槽-粘贴 QTextEdit自带的paste()槽函数
-    connect(pasteText,QAction::triggered,textEdit,QPlainTextEdit::paste);
+    // 信号与槽-剪切
+//    connect(cutText, &QAction::triggered, textEditor, &QsciScintilla::cut);
+
+    connect(cutText, &QAction::triggered, this, [=]() {
+        // 执行QScintilla的复制操作
+        textEdit->cut();
+    });
+
+    // 信号与槽-粘贴
+//    connect(pasteText, &QAction::triggered, textEditor, &QsciScintilla::paste);
+
+    connect(pasteText, &QAction::triggered, this, [=]() {
+        // 执行QScintilla的复制操作
+        textEdit->paste();
+    });
 
     //信号与槽-搜索
     connect(seekText,QAction::triggered,[=]{
@@ -313,7 +325,7 @@ void MainWindow::newFile(){
 //判断是否保存过
 bool MainWindow::maybeSave(){
     //如果文档被更改了
-    if(textEdit->document()->isModified()){
+    if(textEdit->isModified()){
         //自定义一个警告对话框
         QMessageBox box;
         box.setWindowTitle(tr("警告"));
@@ -358,7 +370,7 @@ bool MainWindow::saveFile(const QString &fileName){
 
     if(f.open(QIODevice::ReadWrite)){
            QTextStream fin(&f);
-           fin<<textEdit->toPlainText();
+           fin<<textEdit->text();
      }else{
            qDebug()<<"save file failed!";
            return false;
@@ -376,8 +388,10 @@ bool MainWindow::openFile(const QString &fileName)
 {
     QFile f(fileName);
     if(f.open(QIODevice::ReadWrite)){
-           QTextStream fout(&f);
-           textEdit->setPlainText(fout.readAll());
+           QTextStream in(&f);
+           QString fcontent = in.readAll();
+           textEdit->setText(fcontent);
+           f.close();
      }else{
            qDebug()<<"open file failed!";
            return false;
@@ -389,48 +403,22 @@ bool MainWindow::openFile(const QString &fileName)
 }
 
 //槽函数实现-显示查找到的文本
-void MainWindow::showFindText()
-{
-    //获得对话框的内容
-    QString findtext = findLineEdit->text();
-    //查找上一个
-    if(textEdit->find(findtext,QTextDocument::FindBackward))
-    {
-        //找到后高亮显示
-        QPalette palette = textEdit->palette();
-        palette.setColor(QPalette::Highlight,palette.color(QPalette::Active,QPalette::Highlight));
-        textEdit->setPalette(palette);
-    }else {
-        QMessageBox::information(this,tr("注意"),tr("没有找到内容"),QMessageBox::Ok);
-    }
+void MainWindow::showFindText() {
+    // 获取查找文本
+    QString findText = findLineEdit->text();
+
 }
 
 //槽函数实现-字体改变
 void MainWindow::setFont(const QFont &font)
 {
-    //该段代码没有存储字号属性，所以有bug：先改变字号再改变字体会使得字号重置。
-//    tcf->setFont(font);
-//    textEdit->mergeCurrentCharFormat(*tcf);
 
-   QTextCursor cursor = textEdit->textCursor();
-
-   // 获取当前选中文字的字体和字号
-   QTextCharFormat currentFormat = cursor.charFormat();
-   QFont currentFont = currentFormat.font();
-   qreal currentFontSize = currentFont.pointSizeF();
-
-   // 设置新的字体
-   QFont newFont = font;
-   newFont.setPointSizeF(currentFontSize);
-   tcf->setFont(newFont);
-   textEdit->mergeCurrentCharFormat(*tcf);
 }
 
 //槽函数实现-字号改变
 void MainWindow::setFontSize(int index)
 {
-    tcf->setFontPointSize(double(index));
-    textEdit->mergeCurrentCharFormat(*tcf);
+
 }
 
 //槽函数实现-字体加粗

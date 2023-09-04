@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>Tree</class>
+ <widget class="QMainWindow" name="Tree">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>316</width>
+    <height>633</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>MainWindow</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <widget class="QTreeWidget" name="tree">
+    <property name="geometry">
+     <rect>
+      <x>0</x>
+      <y>0</y>
+      <width>371</width>
+      <height>721</height>
+     </rect>
+    </property>
+    <column>
+     <property name="text">
+      <string>项目文件</string>
+     </property>
+    </column>
+   </widget>
+  </widget>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

@@ -1,6 +1,12 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
+
 #include <Qsci/qsciscintilla.h>
+#include <Qsci/qsciscintilla.h>
+#include <Qsci/qsciapis.h>
+#include <Qsci/qscilexercpp.h>
+#include <Qsci/qscilexerpython.h>
+
 #include <QMainWindow>
 #include <QTextEdit>
 #include <QPlainTextEdit>
@@ -54,6 +60,7 @@ public:
     QToolButton* underlineBtn;
 
     QsciScintilla* textEdit;
+    QsciLexer *textLexer;
     QTextCharFormat* tcf;
 
 private:

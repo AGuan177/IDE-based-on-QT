@@ -61,6 +61,86 @@ MainWindow::MainWindow(QWidget *parent)
     creatTool();
     connectImpl();
 
+     /************ 主体：文本编辑框 ************/
+    textEdit = new QsciScintilla;
+    this->setCentralWidget(textEdit);
+
+    /************ 主体：词法编辑器 ************/
+    textLexer = new QsciLexerCPP;
+    textLexer->setColor(QColor("#008000"),QsciLexerCPP::Comment);
+    textLexer->setColor(QColor("#ff0000"),QsciLexerCPP::Number);
+    textLexer->setColor(QColor("#008000"),QsciLexerCPP::CommentLineDoc);
+    textLexer->setColor(QColor("#008000"),QsciLexerCPP::DoubleQuotedString);
+    textLexer->setColor(QColor("#ff00ff"),QsciLexerCPP::SingleQuotedString);
+    textLexer->setColor(QColor("#0055ff"),QsciLexerCPP::Keyword);
+    textLexer->setColor(QColor("#0055ff"),QsciLexerCPP::PreProcessor);
+    textEdit->setLexer(textLexer);
+
+
+    //代码提示
+    QsciAPIs *apis = new QsciAPIs(textLexer);
+    apis->prepare();
+
+    QFont font1("Courier", 10, QFont::Normal);
+//    this->setFont(font1);
+
+    this->textEdit->setAutoCompletionSource(QsciScintilla::AcsAll);   //设置源，自动补全所有地方出现的
+    this->textEdit->setAutoCompletionCaseSensitivity(true);   //设置自动补全大小写敏感
+    this->textEdit->setAutoCompletionThreshold(2);    //设置每输入2个字符就会出现自动补全的提示
+
+    //设置自动缩进
+    this->textEdit->setAutoIndent(true);
+
+    //Enables or disables, according to enable, this display of indentation guides.
+    this->textEdit->setIndentationGuides(true);
+
+    //current line color
+    this->textEdit->setCaretWidth(2);//光标宽度，0表示不显示光标
+    this->textEdit->setCaretForegroundColor(QColor("darkCyan"));  //光标颜色
+    this->textEdit->setCaretLineVisible(true); //是否高亮显示光标所在行
+    this->textEdit->setCaretLineBackgroundColor(Qt::lightGray);//光标所在行背景颜色
+
+    //selection color
+    this->textEdit->setSelectionBackgroundColor(Qt::black);//选中文本背景色
+    this->textEdit->setSelectionForegroundColor(Qt::white);//选中文本前景色
+
+    //It is ignored if an indicator is being used. The default is blue.
+    this->textEdit->setUnmatchedBraceForegroundColor(Qt::blue);
+
+
+    this->textEdit->setBraceMatching(QsciScintilla::SloppyBraceMatch);
+
+    //设置左侧行号栏宽度等
+    QFont font("Courier", 10, QFont::Normal);
+    QFontMetrics fontmetrics = QFontMetrics(font);
+    this->textEdit->setMarginWidth(0, fontmetrics.width("000"));
+    this->textEdit->setMarginLineNumbers(0, true);
+    this->textEdit->setBraceMatching(QsciScintilla::SloppyBraceMatch);//括号匹配
+    this->textEdit->setTabWidth(4);
+
+    QFont margin_font;
+    margin_font.setFamily("SimSun");
+    margin_font.setPointSize(11);//边栏字体设置px我这里显示不出行号，不知道是怎么回事
+    this->textEdit->setMarginsFont(margin_font);//设置页边字体
+    this->textEdit->setMarginType(0,QsciScintilla::NumberMargin);//设置标号为0的页边显示行号
+    //editor->setMarginMarkerMask(0,QsciScintilla::Background);//页边掩码
+    //editor->setMarginSensitivity(0,true);//设置是否可以显示断点,注册通知事件，当用户点击边栏时，scintilla会通知我们
+    //textEdit->setMarginsBackgroundColor(QColor("#bbfaae"));
+//    this->setMarginLineNumbers(0,true);//设置第0个边栏为行号边栏，True表示显示
+//    this->setMarginWidth(0,15);//设置0边栏宽度
+    this->textEdit->setMarginsBackgroundColor(Qt::gray);//显示行号背景颜色
+    this->textEdit->setMarginsForegroundColor(Qt::white);
+
+    this->textEdit->setFolding(QsciScintilla::BoxedTreeFoldStyle);//折叠样式
+    this->textEdit->setFoldMarginColors(Qt::gray,Qt::lightGray);//折叠栏颜色
+
+    //auto complete
+    //Acs[None|All|Document|APIs]
+    //禁用自动补全提示功能|所有可用的资源|当前文档中出现的名称都自动补全提示|使用QsciAPIs类加入的名称都自动补全提示
+    this->textEdit->setAutoCompletionSource(QsciScintilla::AcsAll);//自动补全。对于所有Ascii字符
+    //editor->setAutoCompletionCaseSensitivity(false);//大小写敏感度，设置lexer可能会更改，不过貌似没啥效果
+    this->textEdit->setAutoCompletionThreshold(3);//设置每输入一个字符就会出现自动补全的提示
+    //editor->setAutoCompletionReplaceWord(false);//是否用补全的字符串替代光标右边的字符串
 
     //设置状态栏
     QStatusBar* statusBar = this->statusBar();
@@ -193,9 +273,8 @@ void MainWindow::creatTool()
     toolBar->addWidget(underlineBtn);
 
 //    qDebug() << "addwidget";
-    /************ 主体：文本编辑框 ************/
-    textEdit = new QsciScintilla;
-    this->setCentralWidget(textEdit);// 创建 Highlighter 的实例并将其与 textEdit 关联
+
+
 //    qDebug() << "Highligher";
 
 }

@@ -42,6 +42,7 @@
 #include <QSplitter>
 #include <QFileInfo>
 #include <QtGui/QGuiApplication>
+#include <QInputDialog>
 #include <QUrl>
 #include <QDesktopServices>
 #include "tree.h"

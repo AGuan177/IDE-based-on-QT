@@ -451,9 +451,26 @@ void MainWindow::onTabClicked(int index) {
 
 // 双击tab，修改标签title
 void MainWindow::onTabDoubleClicked(int index) {
-    // 弹出对话框以获取新的标签标题
-    // 比较麻烦先不实现，因为涉及到了关闭窗口按钮的问题
-    qDebug()<<"dddd成功切换";
+    QString tabTitle = tabWidget->tabText(index);
+        QsciScintilla *tabScintilla = tabScintillaMap[tabTitle];
+        curScintilla = tabScintilla;
+        qDebug() << "成功切换";
+
+        bool ok;
+        QString newTabTitle = QInputDialog::getText(this, "修改标签", "请输入新标签", QLineEdit::Normal, tabTitle, &ok);
+
+        if (ok && !newTabTitle.isEmpty() && tabScintillaMap.find(newTabTitle)== tabScintillaMap.end()) {
+            tabScintillaMap.remove(tabTitle);
+            tabScintillaMap.insert(newTabTitle,tabScintilla);
+            tabWidget->setTabText(index, newTabTitle);
+        }
+        else if(ok){
+            QMessageBox msgBox;
+            msgBox.setIcon(QMessageBox::Warning);
+            msgBox.setText("该名称重复或不可用，请重新输入");
+            msgBox.setWindowTitle("错误");
+            msgBox.exec();
+        }
 }
 
 // 看样子是打开函数的方法

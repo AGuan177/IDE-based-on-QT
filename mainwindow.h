@@ -2,11 +2,8 @@
 #define MAINWINDOW_H
 
 #include <Qsci/qsciscintilla.h>
-#include <Qsci/qsciscintilla.h>
 #include <Qsci/qsciapis.h>
 #include <Qsci/qscilexercpp.h>
-#include <Qsci/qscilexerpython.h>
-#include <tree.h>
 #include <QMainWindow>
 #include <QTextEdit>
 #include <QPlainTextEdit>
@@ -17,32 +14,20 @@
 #include <QFontComboBox>
 #include <QToolBar>
 #include <QStatusBar>
-#include <QTextEdit>
 #include <QDebug>
 #include <QMenuBar>
 #include <QMenu>
 #include <QAction>
-#include<QTimer>
-#include "tree.h"
-#include <QMenuBar>
+#include <QTimer>
 #include <QCoreApplication>
 #include <QGraphicsView>
-#include"QTreeWidgetItem"
+#include "QTreeWidgetItem"
 #include <QToolBar>
 #include "QFileInfoList"
 #include <QIcon>
-#include <QLabel>
-#include <QFontComboBox>
-#include <QComboBox>
-#include <QToolButton>
-#include <QStatusBar>
 #include <QDockWidget>
-#include <QTextEdit>
-#include <QPlainTextEdit>
-#include <QDialog>
 #include <QFileDialog>
 #include <QFile>
-#include <QDebug>
 #include <QTextStream>
 #include <QMessageBox>
 #include <QPushButton>
@@ -51,18 +36,18 @@
 #include <QLineEdit>
 #include <QDialog>
 #include <QVBoxLayout>
-#include <QTextCursor>
 #include <QTextCharFormat>
 #include <QFontDialog>
 #include <QTextCodec>
-#include <QDebug>
-#include <string.h>
-#include<QSplitter>
+#include <QSplitter>
 #include <QFileInfo>
 #include <QtGui/QGuiApplication>
 #include <QUrl>
 #include <QDesktopServices>
-#include <QTimer>
+#include "tree.h"
+#include "keywords.h"
+
+
 class QLineEdit;
 class QDialog;
 

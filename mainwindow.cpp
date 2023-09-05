@@ -2,6 +2,7 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
+
 int openTabNum = 0;
 QString path;                   // 定义一个全局变量存放地址
 QTextCodec *codec;              // 字符编码指针
@@ -41,11 +42,11 @@ MainWindow::MainWindow(QWidget *parent)
     globalLexer->setColor(QColor("#ff00ff"),QsciLexerCPP::SingleQuotedString);
     globalLexer->setColor(QColor("#0055ff"),QsciLexerCPP::Keyword);
     globalLexer->setColor(QColor("#0055ff"),QsciLexerCPP::PreProcessor);
-    //代码提示
+    //代码提示词全录入
     QsciAPIs *apis = new QsciAPIs(globalLexer);
-    //foreach (const QString &keyword, CppAutocomplete::cppAutocompleteList) {
-      //  apis->add(keyword);
-    //}
+    foreach (const QString &keyword, Keywords::keywords)
+      apis->add(keyword);
+
 
 
     /************ 代码窗口建立 ************/
@@ -53,7 +54,7 @@ MainWindow::MainWindow(QWidget *parent)
     QPushButton* addButton = new QPushButton("➕", tabWidget);
     addButton->setFixedSize(30, 30); // 设置按钮大小
     tabWidget->tabBar()->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
-    tabWidget->tabBar()->setFont(QFont("Microsoft YaHei", 10)); // 将字体应用到 QTabWidget 的标签栏
+    tabWidget->tabBar()->setFont(QFont("Consolas", 10)); // 将字体应用到 QTabWidget 的标签栏
     connect(addButton, &QPushButton::clicked, this, &MainWindow::createTab);
     tabWidget->addTab(new QWidget(), "");
     tabWidget->tabBar()->setTabButton(0, QTabBar::LeftSide, addButton);

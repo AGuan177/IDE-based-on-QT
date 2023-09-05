@@ -24,6 +24,7 @@ SOURCES += \
     tree.cpp
 
 HEADERS += \
+    keywords.h \
     mainwindow.h \
     tree.h
 

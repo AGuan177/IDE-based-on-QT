@@ -246,7 +246,6 @@ void MainWindow::createMenu()
     connect(file_new,SIGNAL(triggered(bool)),this,SLOT(FileNew()));
 
 
-
     //向文件菜单中添加行为
     newfile = fileMenu->addAction(QIcon(":/icon/icon/newfile.png"),"新建");
     openfile = fileMenu->addAction(QIcon(":/icon/icon/openfile.png"),"打开");
@@ -456,7 +455,7 @@ void MainWindow::onTabDoubleClicked(int index) {
     qDebug()<<"dddd成功切换";
 }
 
-
+// 看样子是打开函数的方法
 void MainWindow::op()
 {
 //    qDebug() << "yes";
@@ -466,7 +465,7 @@ void MainWindow::op()
         if(f.open(QIODevice::ReadWrite)){
                QTextStream in(&f);
                QString fcontent = in.readAll();
-               textEdit->setText(fcontent);
+               curScintilla->setText(fcontent);
                f.close();
          }else{
                qDebug()<<"open file failed!";
@@ -562,7 +561,7 @@ bool MainWindow::saveFile(const QString &fileName){
 
     if(f.open(QIODevice::ReadWrite)){
            QTextStream fin(&f);
-           fin<<textEdit->text();
+           fin<<curScintilla->text();
      }else{
            qDebug()<<"save file failed!";
            return false;

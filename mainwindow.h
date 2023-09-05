@@ -22,7 +22,7 @@
 #include <QMenuBar>
 #include <QMenu>
 #include <QAction>
-
+#include<QTimer>
 class QLineEdit;
 class QDialog;
 
@@ -62,16 +62,15 @@ public:
     QsciScintilla* textEdit;
     QsciLexer *textLexer;
     QTextCharFormat* tcf;
-
+    Tree * tree1;
+    QTimer* timi;
 private:
     Ui::MainWindow *ui;
-    Tree * tree1;
 
     //为真表示文件没有保存过，为假表示文件已经被保存过了
     bool isUnititled;
     //保存当前文件的路径
     QString curFile;
-
     //查找按钮点击后的窗口
     //Dialog对话框
     QDialog *findDlg;
@@ -83,7 +82,8 @@ private:
     QString fileName;       //文件路径
     int x;                  //横坐标
     int y;                  //纵坐标
-
+public slots:
+    void op();
 //私有槽showFindText()声明
 private slots:
     //创建窗口控件函数
@@ -119,7 +119,6 @@ private slots:
     void setUnderline();
     //自定义槽函数-编译文件
     void compile_file();
-
     void FileNew();
     void undo();
     void redo();

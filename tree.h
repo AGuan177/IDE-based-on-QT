@@ -21,9 +21,14 @@ public:
     QTreeWidgetItem* root;
     QString rootPath;
     QFileInfoList allfile(QTreeWidgetItem *parent, QString path);
+    QTreeWidget *treeWidget;
+    QString filePath;
 
-private:
-     QTreeWidget *treeWidget;
+public slots:
+    void DC(QTreeWidgetItem *item, int column);
+
+signals:
+    void DCC();
 };
 #endif // MAINWINDOW_H
 

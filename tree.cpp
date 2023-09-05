@@ -5,6 +5,50 @@
 #include"QDir"
 #include"QDebug"
 #include <QHBoxLayout>
+#include <QFileInfo>
+#include <QtGui/QGuiApplication>
+#include <QUrl>
+#include <QDesktopServices>
+#include <Qsci/qsciscintilla.h>
+#include "mainwindow.h"
+#include "ui_mainwindow.h"
+#include "tree.h"
+#include <QMenuBar>
+#include"QTreeWidgetItem"
+#include <QToolBar>
+#include "QFileInfoList"
+#include <QIcon>
+#include <QLabel>
+#include <QFontComboBox>
+#include <QComboBox>
+#include <QToolButton>
+#include <QStatusBar>
+#include <QDockWidget>
+#include <QTextEdit>
+#include <QPlainTextEdit>
+#include <QDialog>
+#include <QFileDialog>
+#include <QFile>
+#include <QDebug>
+#include <QTextStream>
+#include <QMessageBox>
+#include <QPushButton>
+#include <QTextCursor>
+#include <QClipboard>
+#include <QLineEdit>
+#include <QDialog>
+#include <QVBoxLayout>
+#include <QTextCursor>
+#include <QTextCharFormat>
+#include <QFontDialog>
+#include <QTextCodec>   // 字符编码转换头文件
+#include <QDebug>
+#include <string.h>
+#include<QSplitter>
+#include <QFileInfo>
+#include <QtGui/QGuiApplication>
+#include <QUrl>
+#include <QDesktopServices>
 
 Tree::Tree(QWidget *parent)
     : QMainWindow(parent)
@@ -21,13 +65,13 @@ Tree::Tree(QWidget *parent)
 
     treeWidget->setMinimumHeight(950);
     root = new QTreeWidgetItem(treeWidget);
-    root->setText(0, "D:/QQ");
-//    root->setText(0, "D:/niumo");
-    rootPath = "D:/QQ";
+    root->setIcon(0, QIcon(":/icon/icon/openfile.png"));
+    root->setText(0, "欢迎您使用Editor");
+    rootPath = "欢迎您使用Editor";
     QFileInfoList fileLists = allfile(root, rootPath);
-
+    connect(treeWidget, &QTreeWidget::itemDoubleClicked, this, &Tree::DC);
+    filePath = "null";
 }
-
 
 
 Tree::~Tree()
@@ -52,6 +96,7 @@ QFileInfoList Tree::allfile(QTreeWidgetItem *root,QString path)         //参数
              QFileInfo folderinfo= folder_list.at(i);
              QString name=folderinfo.fileName();      //获取目录名
              QTreeWidgetItem* childroot = new QTreeWidgetItem(QStringList()<<name);
+             childroot->setIcon(0, QIcon(":/icon/icon/openfile.png"));
              root->addChild(childroot);
              childroot->setText(0,name);
              root->addChild(childroot);              //将当前目录添加成path的子项
@@ -69,12 +114,29 @@ QFileInfoList Tree::allfile(QTreeWidgetItem *root,QString path)         //参数
         QFileInfo fileInfo = list_file.at(i);
         QString name2=fileInfo.fileName();
         QTreeWidgetItem* child = new QTreeWidgetItem(QStringList()<<name2);
-        child->setIcon(0, QIcon("D:/11.png"));	//这里只是用了D盘下一张图片 可以随意更改
+        child->setIcon(0, QIcon(":/icon/icon/newfile.png"));	//这里只是用了D盘下一张图片 可以随意更改
         child->setText(0,name2);
         root->addChild(child);  //allfile传入的root下面加入
 
     }
 //    root->setText(0, "D:/niumo");
     return file_list;
+}
+
+void Tree::DC(QTreeWidgetItem *item, int column)
+{
+
+    QString path1 = item->text(column);
+    QTreeWidgetItem *parent = item->parent();
+    while (parent != nullptr)
+    {
+        path1.prepend(parent->text(column) + "/");
+        parent = parent->parent();
+    }
+    filePath = path1;
+//    qDebug()<<filePath;
+    emit DCC();
+    qDebug()<<filePath;
+    return;
 }
 

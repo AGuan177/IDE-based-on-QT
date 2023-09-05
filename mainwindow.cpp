@@ -3,6 +3,7 @@
 #include "ui_mainwindow.h"
 #include "tree.h"
 #include <QMenuBar>
+#include <QCoreApplication>
 #include"QTreeWidgetItem"
 #include <QToolBar>
 #include "QFileInfoList"
@@ -34,7 +35,11 @@
 #include <QDebug>
 #include <string.h>
 #include<QSplitter>
-
+#include <QFileInfo>
+#include <QtGui/QGuiApplication>
+#include <QUrl>
+#include <QDesktopServices>
+#include <QTimer>
 QString path;   // 定义一个全局变量存放地址
 // 字符编码指针
 QTextCodec *codec;
@@ -44,7 +49,6 @@ MainWindow::MainWindow(QWidget *parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-
     // 初始化文件为未保存状态
     isUnititled = true;
     // 初始化文件名为".c"
@@ -136,8 +140,6 @@ MainWindow::MainWindow(QWidget *parent)
     textLexer->setColor(QColor("#0055ff"),QsciLexerCPP::Keyword);
     textLexer->setColor(QColor("#0055ff"),QsciLexerCPP::PreProcessor);
     textEdit->setLexer(textLexer);
-
-
     //代码提示
     QsciAPIs *apis = new QsciAPIs(textLexer);
     apis->prepare();
@@ -345,9 +347,9 @@ void MainWindow::creatTool()
 
 void MainWindow::connectImpl()
 {
-
     //信号与槽-新建文件
     connect(newfile,QAction::triggered,this,MainWindow::newFile);
+
 
     //信号与槽-打开文件 //C++11特性：lambda表达式 匿名函数
     connect(openfile,QAction::triggered,[=]{
@@ -395,7 +397,6 @@ void MainWindow::connectImpl()
     connect(seekText,QAction::triggered,[=]{
         findDlg->show();
     });
-
     //信号与槽-字体设置
     connect(fontSet,QAction::triggered,[=]{
       bool fontSelected;
@@ -419,14 +420,38 @@ void MainWindow::connectImpl()
 
     //信号与槽-字体下划线
     connect(underlineBtn,QToolButton::clicked,this,MainWindow::setUnderline);
+//    (QTreeWidgetItem *item, int column)
+
 
     //信号与槽-文件编译
     connect(compilefile,QAction::triggered,this,MainWindow::compile_file);
     connect(undoe,QAction::triggered,this,MainWindow::undo);
     connect(redoe,QAction::triggered,this,MainWindow::redo);
+    qDebug()<<1;
+    qDebug()<<2;
 }
 
     /*************  自定义槽函数的实现 *************/
+void MainWindow::op()
+{
+//    qDebug() << "yes";
+    if(tree1->filePath != "null"){
+        qDebug()<<"open  "<<tree1->filePath;
+        QFile f(tree1->filePath);
+        if(f.open(QIODevice::ReadWrite)){
+               QTextStream in(&f);
+               QString fcontent = in.readAll();
+               textEdit->setText(fcontent);
+               f.close();
+         }else{
+               qDebug()<<"open file failed!";
+//               return;
+        }
+        tree1->filePath = "null";
+        return;
+    }
+    qDebug();
+}
 
 void MainWindow::undo()
 {
@@ -587,15 +612,16 @@ void MainWindow::setFontSize(int index)
 //槽函数实现-字体加粗
 void MainWindow::setBold()
 {
-  QFont font = textEdit->font();
+//    qDebug()<<tree1->filePath;
+//  QFont font = textEdit->font();
 
-  if(font.bold()) {
-    font.setBold(false);
-  } else {
-    font.setBold(true);
-  }
+//  if(font.bold()) {
+//    font.setBold(false);
+//  } else {
+//    font.setBold(true);
+//  }
 
-  textEdit->setFont(font);
+//  textEdit->setFont(font);
 }
 
 //槽函数实现-字体下划线

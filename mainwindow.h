@@ -23,6 +23,46 @@
 #include <QMenu>
 #include <QAction>
 #include<QTimer>
+#include "tree.h"
+#include <QMenuBar>
+#include <QCoreApplication>
+#include <QGraphicsView>
+#include"QTreeWidgetItem"
+#include <QToolBar>
+#include "QFileInfoList"
+#include <QIcon>
+#include <QLabel>
+#include <QFontComboBox>
+#include <QComboBox>
+#include <QToolButton>
+#include <QStatusBar>
+#include <QDockWidget>
+#include <QTextEdit>
+#include <QPlainTextEdit>
+#include <QDialog>
+#include <QFileDialog>
+#include <QFile>
+#include <QDebug>
+#include <QTextStream>
+#include <QMessageBox>
+#include <QPushButton>
+#include <QTextCursor>
+#include <QClipboard>
+#include <QLineEdit>
+#include <QDialog>
+#include <QVBoxLayout>
+#include <QTextCursor>
+#include <QTextCharFormat>
+#include <QFontDialog>
+#include <QTextCodec>
+#include <QDebug>
+#include <string.h>
+#include<QSplitter>
+#include <QFileInfo>
+#include <QtGui/QGuiApplication>
+#include <QUrl>
+#include <QDesktopServices>
+#include <QTimer>
 class QLineEdit;
 class QDialog;
 
@@ -64,6 +104,7 @@ public:
     QTextCharFormat* tcf;
     Tree * tree1;
     QTimer* timi;
+
 private:
     Ui::MainWindow *ui;
 
@@ -77,7 +118,8 @@ private:
     //单行输入框
     QLineEdit *findLineEdit;
 
-    QTabWidget *tab;
+    QGraphicsView *graphicsView;
+    QTabWidget *tabWidget;  //多文件窗体
     QTextEdit *te;
     QString fileName;       //文件路径
     int x;                  //横坐标
@@ -87,12 +129,17 @@ public slots:
 //私有槽showFindText()声明
 private slots:
     //创建窗口控件函数
-    void creatMenu();
-    void creatTool();
+    void createMenu();
+    void createTool();
+    void createTab();
     //所有的信号与槽连接函数
     void connectImpl();
 
     /******* 问题：为什么这个就不能写在public里面？？？ *******/
+
+    //自定义槽函数：单机标签页
+    void onTabClicked(int index);
+    void onTabDoubleClicked(int index);
     //自定义槽函数-查找
     void showFindText();
 

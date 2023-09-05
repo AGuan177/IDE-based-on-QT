@@ -6,6 +6,7 @@
 #include"QFileInfoList"
 #include"QTranslator"
 
+
 QT_BEGIN_NAMESPACE
 namespace Ui { class Tree; }
 QT_END_NAMESPACE

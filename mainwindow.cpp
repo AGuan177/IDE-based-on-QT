@@ -1,48 +1,13 @@
-#include <Qsci/qsciscintilla.h>
+
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
-#include "tree.h"
-#include <QMenuBar>
-#include <QCoreApplication>
-#include"QTreeWidgetItem"
-#include <QToolBar>
-#include "QFileInfoList"
-#include <QIcon>
-#include <QLabel>
-#include <QFontComboBox>
-#include <QComboBox>
-#include <QToolButton>
-#include <QStatusBar>
-#include <QDockWidget>
-#include <QTextEdit>
-#include <QPlainTextEdit>
-#include <QDialog>
-#include <QFileDialog>
-#include <QFile>
-#include <QDebug>
-#include <QTextStream>
-#include <QMessageBox>
-#include <QPushButton>
-#include <QTextCursor>
-#include <QClipboard>
-#include <QLineEdit>
-#include <QDialog>
-#include <QVBoxLayout>
-#include <QTextCursor>
-#include <QTextCharFormat>
-#include <QFontDialog>
-#include <QTextCodec>   // 字符编码转换头文件
-#include <QDebug>
-#include <string.h>
-#include<QSplitter>
-#include <QFileInfo>
-#include <QtGui/QGuiApplication>
-#include <QUrl>
-#include <QDesktopServices>
-#include <QTimer>
-QString path;   // 定义一个全局变量存放地址
-// 字符编码指针
-QTextCodec *codec;
+
+int openTabNum = 0;
+QString path;                   // 定义一个全局变量存放地址
+QTextCodec *codec;              // 字符编码指针
+QsciLexer *globalLexer;         // 全局的格式
+QsciScintilla *curScintilla;    // 当前的火花
+QMap<QString, QsciScintilla*> tabScintillaMap;  // tab与scintilla的对应
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -65,21 +30,45 @@ MainWindow::MainWindow(QWidget *parent)
 
     codec = QTextCodec::codecForName("GBK");
 
-    creatMenu();
-    creatTool();
+    /************ 全局词法编辑器 ************/
+
+    globalLexer = new QsciLexerCPP;
+
+    globalLexer->setColor(QColor("#008000"),QsciLexerCPP::Comment);
+    globalLexer->setColor(QColor("#ff0000"),QsciLexerCPP::Number);
+    globalLexer->setColor(QColor("#008000"),QsciLexerCPP::CommentLineDoc);
+    globalLexer->setColor(QColor("#008000"),QsciLexerCPP::DoubleQuotedString);
+    globalLexer->setColor(QColor("#ff00ff"),QsciLexerCPP::SingleQuotedString);
+    globalLexer->setColor(QColor("#0055ff"),QsciLexerCPP::Keyword);
+    globalLexer->setColor(QColor("#0055ff"),QsciLexerCPP::PreProcessor);
+    //代码提示
+    QsciAPIs *apis = new QsciAPIs(globalLexer);
+    //foreach (const QString &keyword, CppAutocomplete::cppAutocompleteList) {
+      //  apis->add(keyword);
+    //}
+
+
+    /************ 代码窗口建立 ************/
+    tabWidget = new QTabWidget();
+    QPushButton* addButton = new QPushButton("➕", tabWidget);
+    addButton->setFixedSize(30, 30); // 设置按钮大小
+    tabWidget->tabBar()->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
+    tabWidget->tabBar()->setFont(QFont("Microsoft YaHei", 10)); // 将字体应用到 QTabWidget 的标签栏
+    connect(addButton, &QPushButton::clicked, this, &MainWindow::createTab);
+    tabWidget->addTab(new QWidget(), "");
+    tabWidget->tabBar()->setTabButton(0, QTabBar::LeftSide, addButton);
+
+     /************ 文件数与小地图建立 ************/
+    tree1 = new Tree;
+    graphicsView = new QGraphicsView;
+    graphicsView->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+
+    createMenu();
+    createTool();
+    createTab();
     connectImpl();
 
-     /************ 主体：文本编辑框 ************/
-    textEdit = new QsciScintilla;
-    textEdit->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-    textEdit->setMinimumWidth(0);
-
-    tree1 = new Tree; // 使用您创建的树形部件类名
-
-
-    // 创建地图文本框
-    QTextEdit *graphicText = new QTextEdit;
-    graphicText->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+     /************ 布局绑定 ************/
 
     // 创建一个垂直布局管理器
     QVBoxLayout *mainLayout = new QVBoxLayout;
@@ -89,14 +78,8 @@ MainWindow::MainWindow(QWidget *parent)
 
     // 创建一个小QSplitter，用于容纳地图代码框和代码文件框
     QSplitter *smallsplitter = new QSplitter(Qt::Horizontal);;
-
-    smallsplitter->addWidget(textEdit);
-
-    smallsplitter->addWidget(graphicText);
-
-//    QList<int> smallsizes;
-//    smallsizes << 4 << 1;
-//    smallsplitter->setSizes(smallsizes);
+    smallsplitter->addWidget(tabWidget);
+    smallsplitter->addWidget(graphicsView);
     smallsplitter->setStretchFactor(0, 7); // 第一个部分（textEdit）的伸缩因子为7
     smallsplitter->setStretchFactor(1, 1); // 第二个部分（graphicText）的伸缩因子为1
 
@@ -109,15 +92,11 @@ MainWindow::MainWindow(QWidget *parent)
     // 添加smallQSplitter到QSplitter
     splitter->addWidget(smallsplitter);
 
-
     // 创建输出结果文本框
     QTextEdit *outputText = new QTextEdit;
     outputText->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     // 添加输出结果文本框到QSplitter
     splitter->addWidget(outputText);
-//    QList<int> sizes;
-//    sizes << 1 <<6;
-//    splitter->setSizes(sizes);
     splitter->setStretchFactor(0, 11); // 第一个部分（textEdit）的伸缩因子为7
     splitter->setStretchFactor(1, 1); // 第二个部分（graphicText）的伸缩因子为1
     // 将QSplitter添加到水平布局中
@@ -130,80 +109,6 @@ MainWindow::MainWindow(QWidget *parent)
     centralWidget->setLayout(mainLayout);
     // 将中央部件设置为主窗口的中央部件
     setCentralWidget(centralWidget);
-    /************ 主体：词法编辑器 ************/
-    textLexer = new QsciLexerCPP;
-    textLexer->setColor(QColor("#008000"),QsciLexerCPP::Comment);
-    textLexer->setColor(QColor("#ff0000"),QsciLexerCPP::Number);
-    textLexer->setColor(QColor("#008000"),QsciLexerCPP::CommentLineDoc);
-    textLexer->setColor(QColor("#008000"),QsciLexerCPP::DoubleQuotedString);
-    textLexer->setColor(QColor("#ff00ff"),QsciLexerCPP::SingleQuotedString);
-    textLexer->setColor(QColor("#0055ff"),QsciLexerCPP::Keyword);
-    textLexer->setColor(QColor("#0055ff"),QsciLexerCPP::PreProcessor);
-    textEdit->setLexer(textLexer);
-    //代码提示
-    QsciAPIs *apis = new QsciAPIs(textLexer);
-    apis->prepare();
-
-    QFont font1("Courier", 10, QFont::Normal);
-//    this->setFont(font1);
-
-    this->textEdit->setAutoCompletionSource(QsciScintilla::AcsAll);   //设置源，自动补全所有地方出现的
-    this->textEdit->setAutoCompletionCaseSensitivity(true);   //设置自动补全大小写敏感
-    this->textEdit->setAutoCompletionThreshold(2);    //设置每输入2个字符就会出现自动补全的提示
-
-    //设置自动缩进
-    this->textEdit->setAutoIndent(true);
-
-    //Enables or disables, according to enable, this display of indentation guides.
-    this->textEdit->setIndentationGuides(true);
-
-    //current line color
-    this->textEdit->setCaretWidth(2);//光标宽度，0表示不显示光标
-    this->textEdit->setCaretForegroundColor(QColor("darkCyan"));  //光标颜色
-    this->textEdit->setCaretLineVisible(true); //是否高亮显示光标所在行
-    this->textEdit->setCaretLineBackgroundColor(Qt::lightGray);//光标所在行背景颜色
-
-    //selection color
-    this->textEdit->setSelectionBackgroundColor(Qt::black);//选中文本背景色
-    this->textEdit->setSelectionForegroundColor(Qt::white);//选中文本前景色
-
-    //It is ignored if an indicator is being used. The default is blue.
-    this->textEdit->setUnmatchedBraceForegroundColor(Qt::blue);
-
-
-    this->textEdit->setBraceMatching(QsciScintilla::SloppyBraceMatch);
-
-    //设置左侧行号栏宽度等
-    QFont font("Courier", 10, QFont::Normal);
-    QFontMetrics fontmetrics = QFontMetrics(font);
-    this->textEdit->setMarginWidth(0, fontmetrics.width("000"));
-    this->textEdit->setMarginLineNumbers(0, true);
-    this->textEdit->setBraceMatching(QsciScintilla::SloppyBraceMatch);//括号匹配
-    this->textEdit->setTabWidth(4);
-
-    QFont margin_font;
-    margin_font.setFamily("SimSun");
-    margin_font.setPointSize(11);//边栏字体设置px我这里显示不出行号，不知道是怎么回事
-    this->textEdit->setMarginsFont(margin_font);//设置页边字体
-    this->textEdit->setMarginType(0,QsciScintilla::NumberMargin);//设置标号为0的页边显示行号
-    //editor->setMarginMarkerMask(0,QsciScintilla::Background);//页边掩码
-    //editor->setMarginSensitivity(0,true);//设置是否可以显示断点,注册通知事件，当用户点击边栏时，scintilla会通知我们
-    //textEdit->setMarginsBackgroundColor(QColor("#bbfaae"));
-//    this->setMarginLineNumbers(0,true);//设置第0个边栏为行号边栏，True表示显示
-//    this->setMarginWidth(0,15);//设置0边栏宽度
-    this->textEdit->setMarginsBackgroundColor(Qt::gray);//显示行号背景颜色
-    this->textEdit->setMarginsForegroundColor(Qt::white);
-
-    this->textEdit->setFolding(QsciScintilla::BoxedTreeFoldStyle);//折叠样式
-    this->textEdit->setFoldMarginColors(Qt::gray,Qt::lightGray);//折叠栏颜色
-
-    //auto complete
-    //Acs[None|All|Document|APIs]
-    //禁用自动补全提示功能|所有可用的资源|当前文档中出现的名称都自动补全提示|使用QsciAPIs类加入的名称都自动补全提示
-    this->textEdit->setAutoCompletionSource(QsciScintilla::AcsAll);//自动补全。对于所有Ascii字符
-    //editor->setAutoCompletionCaseSensitivity(false);//大小写敏感度，设置lexer可能会更改，不过貌似没啥效果
-    this->textEdit->setAutoCompletionThreshold(3);//设置每输入一个字符就会出现自动补全的提示
-    //editor->setAutoCompletionReplaceWord(false);//是否用补全的字符串替代光标右边的字符串
 
     //设置状态栏
     QStatusBar* statusBar = this->statusBar();
@@ -225,8 +130,102 @@ MainWindow::MainWindow(QWidget *parent)
     connect(btn1, SIGNAL(clicked()), this, SLOT(showFindText()));
 
 }
+void MainWindow::createTab() {
 
-void MainWindow::creatMenu()
+    // 创建新的对象
+    QsciScintilla* newScintilla = new QsciScintilla; // 创建一个新的 QsciScintilla 对象
+    newScintilla->setLexer(globalLexer); // 设置词法分析器（可能是您在其他地方定义的）
+    QString tabTitle = "Tab" + QString::number(openTabNum);
+    openTabNum ++;
+    tabWidget->addTab(newScintilla, tabTitle);
+    tabScintillaMap.insert(tabTitle, newScintilla);
+    qDebug()<<tabTitle<<newScintilla;
+
+    // 添加关闭按钮到新标签页
+    QWidget* tabWidgetContainer = new QWidget();
+    QHBoxLayout* tabLayout = new QHBoxLayout(tabWidgetContainer);
+    QPushButton* closeButton = new QPushButton("✖"); // 使用✖作为关闭按钮的文本，可以替换为图标
+
+    // 设置关闭按钮的固定大小（例如：20x20 像素）
+    closeButton->setFixedSize(20, 20);
+
+    tabLayout->addWidget(closeButton);
+    tabLayout->setContentsMargins(0, 0, 0, 0);
+    tabLayout->setSpacing(0);
+
+    tabWidget->setTabText(tabWidget->count() - 1, tabTitle);
+    tabWidget->tabBar()->setTabButton(tabWidget->count() - 1, QTabBar::RightSide, tabWidgetContainer);
+
+    // 连接按钮的点击事件到关闭标签页的槽函数
+    connect(closeButton, &QPushButton::clicked, [this, newScintilla]() {
+        // 获取当前标签页的索引
+        int currentIndex = tabWidget->indexOf(newScintilla);
+
+        // 关闭标签页
+        tabWidget->removeTab(currentIndex);
+
+        // 删除相应的 QsciScintilla 对象
+        //delete newScintilla;
+    });
+
+    // 切换到最新的这个 tab
+    tabWidget->setCurrentIndex(tabWidget->count() - 1);
+    curScintilla = newScintilla;
+
+    // 设置自动补全，自动补全所有地方出现的
+    newScintilla->setAutoCompletionSource(QsciScintilla::AcsAPIs);
+    newScintilla->setAutoCompletionThreshold(2);
+
+     // 设置严格的括号匹配
+    newScintilla->setBraceMatching(QsciScintilla::StrictBraceMatch);
+
+    // 设置为UTF-8编码
+    newScintilla->setUtf8(true);
+
+    // 设置自动补全大小写敏感
+    newScintilla->setAutoCompletionCaseSensitivity(true);
+
+    // 设置自动缩进
+    newScintilla->setAutoIndent(true);
+
+    // 启用显示缩进引导线
+    newScintilla->setIndentationGuides(true);
+
+    // 设置当前行的光标宽度和颜色
+    newScintilla->setCaretWidth(2); // 光标宽度，0表示不显示光标
+    newScintilla->setCaretForegroundColor(QColor("darkCyan")); // 光标颜色
+    newScintilla->setCaretLineVisible(true); // 是否高亮显示光标所在行
+    newScintilla->setCaretLineBackgroundColor(Qt::lightGray); // 光标所在行背景颜色
+
+    // 设置选中文本的背景和前景颜色
+    newScintilla->setSelectionBackgroundColor(Qt::black);
+    newScintilla->setSelectionForegroundColor(Qt::white);
+
+    // 设置未匹配括号的颜色
+    newScintilla->setUnmatchedBraceForegroundColor(Qt::blue);
+    newScintilla->setBraceMatching(QsciScintilla::SloppyBraceMatch);
+
+    // 设置左侧行号栏的宽度等
+    QFont font("Courier", 10, QFont::Normal);
+    QFontMetrics fontmetrics = QFontMetrics(font);
+    newScintilla->setMarginWidth(0, fontmetrics.width("0000"));
+    newScintilla->setMarginLineNumbers(0, true);
+    newScintilla->setBraceMatching(QsciScintilla::SloppyBraceMatch); // 括号匹配
+    newScintilla->setTabWidth(4);
+    QFont margin_font;
+    margin_font.setFamily("SimSun");
+    margin_font.setPointSize(11);
+    newScintilla->setMarginsFont(margin_font); // 设置页边字体
+    newScintilla->setMarginType(0, QsciScintilla::NumberMargin); // 设置标号为0的页边显示行号
+    newScintilla->setMarginsBackgroundColor(Qt::gray); // 显示行号背景颜色
+    newScintilla->setMarginsForegroundColor(Qt::white);
+
+    // 设置折叠样式和折叠栏颜色
+    newScintilla->setFolding(QsciScintilla::BoxedTreeFoldStyle);
+    newScintilla->setFoldMarginColors(Qt::gray, Qt::lightGray);
+
+}
+void MainWindow::createMenu()
 {
     //基本控件设置
     //获取菜单栏
@@ -271,7 +270,7 @@ void MainWindow::creatMenu()
 
 
 }
-void MainWindow::creatTool()
+void MainWindow::createTool()
 {
     //添加工具栏
     QToolBar* toolBar = this->addToolBar("tool");
@@ -347,6 +346,13 @@ void MainWindow::creatTool()
 
 void MainWindow::connectImpl()
 {
+    //单击某个tab的槽函数
+    connect(tabWidget->tabBar(), SIGNAL(tabBarClicked(int)), this, SLOT(onTabClicked(int)));
+
+    //单击某个tab的槽函数
+    connect(tabWidget->tabBar(), SIGNAL(tabBarDoubleClicked(int)), this, SLOT(onTabDoubleClicked(int)));
+
+
     //信号与槽-新建文件
     connect(newfile,QAction::triggered,this,MainWindow::newFile);
 
@@ -374,7 +380,7 @@ void MainWindow::connectImpl()
     // 连接按钮的点击信号到槽函数
     connect(copyText, &QAction::triggered, this, [=]() {
         // 执行QScintilla的复制操作
-        textEdit->copy();
+        curScintilla->copy();
     });
 
     // 信号与槽-剪切
@@ -382,7 +388,7 @@ void MainWindow::connectImpl()
 
     connect(cutText, &QAction::triggered, this, [=]() {
         // 执行QScintilla的复制操作
-        textEdit->cut();
+        curScintilla->cut();
     });
 
     // 信号与槽-粘贴
@@ -390,7 +396,7 @@ void MainWindow::connectImpl()
 
     connect(pasteText, &QAction::triggered, this, [=]() {
         // 执行QScintilla的复制操作
-        textEdit->paste();
+        curScintilla->paste();
     });
 
     //信号与槽-搜索
@@ -402,7 +408,7 @@ void MainWindow::connectImpl()
       bool fontSelected;
       QFont font = QFontDialog::getFont(&fontSelected,this);
       if(fontSelected){
-          textEdit->setFont(font);
+          curScintilla->setFont(font);
       }
     });
 
@@ -432,6 +438,25 @@ void MainWindow::connectImpl()
 }
 
     /*************  自定义槽函数的实现 *************/
+
+// 单击Tab：切换到当前这个tab
+void MainWindow::onTabClicked(int index) {
+    QString tabTitle = tabWidget->tabText(index);
+    qDebug()<<tabTitle;
+    QsciScintilla *tabScintilla = tabScintillaMap[tabTitle];
+    qDebug()<<tabScintilla;
+    curScintilla = tabScintilla;
+    qDebug()<<"成功切换";
+}
+
+// 双击tab，修改标签title
+void MainWindow::onTabDoubleClicked(int index) {
+    // 弹出对话框以获取新的标签标题
+    // 比较麻烦先不实现，因为涉及到了关闭窗口按钮的问题
+    qDebug()<<"dddd成功切换";
+}
+
+
 void MainWindow::op()
 {
 //    qDebug() << "yes";
@@ -455,12 +480,13 @@ void MainWindow::op()
 
 void MainWindow::undo()
 {
-    textEdit->undo();
+    qDebug()<<curScintilla;
+    curScintilla->undo();
 }
 
 void MainWindow::redo()
 {
-    textEdit->redo();
+    curScintilla->redo();
 }
 
 //新建窗口
@@ -484,14 +510,14 @@ void MainWindow::newFile(){
       isUnititled = true;
       curFile = tr(".c");
       setWindowTitle(curFile);
-      textEdit->clear();
+      createTab();
   }
 }
 
 //判断是否保存过
 bool MainWindow::maybeSave(){
     //如果文档被更改了
-    if(textEdit->isModified()){
+    if(curScintilla->isModified()){
         //自定义一个警告对话框
         QMessageBox box;
         box.setWindowTitle(tr("警告"));
@@ -567,7 +593,7 @@ bool MainWindow::openFile(const QString &fileName)
     if(f.open(QIODevice::ReadWrite)){
            QTextStream in(&f);
            QString fcontent = in.readAll();
-           textEdit->setText(fcontent);
+           curScintilla->setText(fcontent);
            f.close();
      }else{
            qDebug()<<"open file failed!";
@@ -627,7 +653,7 @@ void MainWindow::setBold()
 //槽函数实现-字体下划线
 void MainWindow::setUnderline()
 {
-  QFont font = textEdit->font();
+  QFont font = curScintilla->font();
 
   if(font.underline()) {
     font.setUnderline(false);
@@ -635,7 +661,7 @@ void MainWindow::setUnderline()
     font.setUnderline(true);
   }
 
-  textEdit->setFont(font);
+  curScintilla->setFont(font);
 }
 void MainWindow::compile_file()
 {

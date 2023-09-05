@@ -61,8 +61,9 @@ MainWindow::MainWindow(QWidget *parent)
 
      /************ 文件数与小地图建立 ************/
     tree1 = new Tree;
-    graphicsView = new QGraphicsView;
-    graphicsView->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    minimapView = new QGraphicsView;
+    minimapView->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    minimapView->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 
     createMenu();
     createTool();
@@ -80,7 +81,7 @@ MainWindow::MainWindow(QWidget *parent)
     // 创建一个小QSplitter，用于容纳地图代码框和代码文件框
     QSplitter *smallsplitter = new QSplitter(Qt::Horizontal);;
     smallsplitter->addWidget(tabWidget);
-    smallsplitter->addWidget(graphicsView);
+    smallsplitter->addWidget(minimapView);
     smallsplitter->setStretchFactor(0, 7); // 第一个部分（textEdit）的伸缩因子为7
     smallsplitter->setStretchFactor(1, 1); // 第二个部分（graphicText）的伸缩因子为1
 
@@ -439,6 +440,80 @@ void MainWindow::connectImpl()
 
     /*************  自定义槽函数的实现 *************/
 
+void MainWindow::showMinimap() {
+    // 获取 QScintilla 控件的内容
+    QString codeText = curScintilla->text();
+    QFont font = curScintilla->font(); // 获取 QScintilla 的字体
+    int lineHeight = QFontMetrics(font).lineSpacing(); // 获取字体的行高度
+    int windowHeight = tabWidget->height();
+    int firstLineNumber = curScintilla->firstVisibleLine();
+    int lastLineNumber = firstLineNumber + windowHeight / lineHeight;
+
+    // 创建一个 QTextDocument 来呈现代码文本
+    QTextDocument textDocument;
+    textDocument.setPlainText(codeText);
+
+    // 获取代码文本的大小
+    QSizeF textSize = textDocument.size();
+
+    // 创建一个 QPixmap 以适应整个代码文本，增加分辨率
+    int scaleFactor = 1; // 增加分辨率的倍数
+    QPixmap codePixmap(textSize.toSize() * scaleFactor);
+    codePixmap.fill(Qt::white); // 填充白色背景
+    QPainter painter(&codePixmap);
+    painter.setRenderHint(QPainter::TextAntialiasing); // 启用文本抗锯齿
+    painter.scale(scaleFactor, scaleFactor); // 缩放以适应分辨率
+
+    // 在副本图像上方绘制红色长方形
+    painter.setPen(Qt::NoPen); // 取消画笔，以绘制填充
+    painter.setBrush(QColor(0, 255, 0, 100)); // 设置红色填充颜色，透明度为 100
+    int boxX = 0;
+    int boxY = firstLineNumber * lineHeight;
+    int boxWidth = codePixmap.width(); // 红色方框宽度等于代码图像的宽度
+    int boxHeight = (lastLineNumber - firstLineNumber + 1) * lineHeight;
+    painter.drawRect(boxX, boxY, boxWidth, boxHeight);
+
+    // 创建一个粗体 QFont
+    QFont boldFont = curScintilla->font();
+    boldFont.setBold(true);
+
+    // 将粗体 QFont 应用到 QPainter
+    painter.setFont(boldFont);
+
+    // 设置笔的宽度为最大值
+    QPen pen = painter.pen();
+    pen.setWidth(5); // 设置笔的宽度为 10，用于绘制代码文本
+    painter.setPen(pen);
+
+    textDocument.drawContents(&painter);
+
+    // 创建一个 QGraphicsPixmapItem，用于在 QGraphicsView 中显示图像
+    QGraphicsPixmapItem *pixmapItem = new QGraphicsPixmapItem(codePixmap);
+
+    // 创建一个 QGraphicsScene，用于管理图像
+    QGraphicsScene *scene = new QGraphicsScene();
+    scene->addItem(pixmapItem);
+
+    // 设置 QGraphicsView 显示的区域和图像
+    minimapView->setScene(scene);
+
+    // 缩放图像以适应 MinimapView 的宽度
+    double viewWidth = minimapView->viewport()->width();
+    double scaleFactorX = viewWidth / (textSize.width() * scaleFactor);
+    double scaleFactorY = viewWidth / (textSize.width() * scaleFactor);
+    minimapView->resetMatrix();
+    minimapView->scale(scaleFactorX, scaleFactorY);
+
+    // 设置图像的对齐方式，使其垂直对齐到顶部
+    minimapView->setAlignment(Qt::AlignTop);
+
+    // 如果图像高度大于 MinimapView 的高度，显示垂直滚动条
+    if (textSize.height() * scaleFactorY > minimapView->viewport()->height()) {
+        minimapView->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+    } else {
+        minimapView->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    }
+}
 // 单击Tab：切换到当前这个tab
 void MainWindow::onTabClicked(int index) {
     QString tabTitle = tabWidget->tabText(index);
@@ -446,6 +521,7 @@ void MainWindow::onTabClicked(int index) {
     QsciScintilla *tabScintilla = tabScintillaMap[tabTitle];
     qDebug()<<tabScintilla;
     curScintilla = tabScintilla;
+    showMinimap();
     qDebug()<<"成功切换";
 }
 

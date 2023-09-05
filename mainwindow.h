@@ -42,9 +42,12 @@
 #include <QSplitter>
 #include <QFileInfo>
 #include <QtGui/QGuiApplication>
+#include <QGraphicsTextItem>
 #include <QInputDialog>
 #include <QUrl>
 #include <QDesktopServices>
+#include <QSvgGenerator>
+#include <QScrollBar>
 #include "tree.h"
 #include "keywords.h"
 
@@ -104,7 +107,7 @@ private:
     //单行输入框
     QLineEdit *findLineEdit;
 
-    QGraphicsView *graphicsView;
+    QGraphicsView *minimapView;
     QTabWidget *tabWidget;  //多文件窗体
     QTextEdit *te;
     QString fileName;       //文件路径
@@ -112,6 +115,7 @@ private:
     int y;                  //纵坐标
 public slots:
     void op();
+    void showMinimap();
 //私有槽showFindText()声明
 private slots:
     //创建窗口控件函数
@@ -126,6 +130,7 @@ private slots:
     //自定义槽函数：单机标签页
     void onTabClicked(int index);
     void onTabDoubleClicked(int index);
+
     //自定义槽函数-查找
     void showFindText();
 

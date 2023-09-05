@@ -16,6 +16,12 @@
     <height>10000</height>
    </size>
   </property>
+  <property name="maximumSize">
+   <size>
+    <width>400</width>
+    <height>16777215</height>
+   </size>
+  </property>
   <property name="windowTitle">
    <string>MainWindow</string>
   </property>
@@ -26,27 +32,6 @@
      <height>10000</height>
     </size>
    </property>
-   <widget class="QTreeWidget" name="tree">
-    <property name="geometry">
-     <rect>
-      <x>0</x>
-      <y>0</y>
-      <width>371</width>
-      <height>10000</height>
-     </rect>
-    </property>
-    <property name="minimumSize">
-     <size>
-      <width>0</width>
-      <height>10000</height>
-     </size>
-    </property>
-    <column>
-     <property name="text">
-      <string>项目文件</string>
-     </property>
-    </column>
-   </widget>
   </widget>
  </widget>
  <resources/>

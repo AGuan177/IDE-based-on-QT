@@ -18,10 +18,12 @@ public:
     Tree(QWidget *parent = nullptr);
     ~Tree();
 
-private:
-    Ui::Tree *ui;
-    QFileInfoList allfile(QTreeWidgetItem *root,QString path);
+    QTreeWidgetItem* root;
+    QString rootPath;
+    QFileInfoList allfile(QTreeWidgetItem *parent, QString path);
 
+private:
+     QTreeWidget *treeWidget;
 };
 #endif // MAINWINDOW_H
 

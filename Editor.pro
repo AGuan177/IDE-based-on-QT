@@ -21,18 +21,15 @@ LIBS += -L$$PWD -lqscintilla2_qt5d
 SOURCES += \
     main.cpp \
     mainwindow.cpp \
-    tree.cpp \
-    background.cpp
+    tree.cpp
 
 HEADERS += \
     mainwindow.h \
-    tree.h \
-    background.h
+    tree.h
 
 FORMS += \
     mainwindow.ui \
-    tree.ui \
-    background.ui
+    tree.ui
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

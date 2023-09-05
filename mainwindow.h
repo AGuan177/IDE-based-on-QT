@@ -6,7 +6,7 @@
 #include <Qsci/qsciapis.h>
 #include <Qsci/qscilexercpp.h>
 #include <Qsci/qscilexerpython.h>
-
+#include <tree.h>
 #include <QMainWindow>
 #include <QTextEdit>
 #include <QPlainTextEdit>
@@ -65,6 +65,7 @@ public:
 
 private:
     Ui::MainWindow *ui;
+    Tree * tree1;
 
     //为真表示文件没有保存过，为假表示文件已经被保存过了
     bool isUnititled;

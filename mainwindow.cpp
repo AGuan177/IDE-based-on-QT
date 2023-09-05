@@ -1,8 +1,11 @@
 #include <Qsci/qsciscintilla.h>
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
+#include "tree.h"
 #include <QMenuBar>
+#include"QTreeWidgetItem"
 #include <QToolBar>
+#include "QFileInfoList"
 #include <QIcon>
 #include <QLabel>
 #include <QFontComboBox>
@@ -30,6 +33,7 @@
 #include <QTextCodec>   // 字符编码转换头文件
 #include <QDebug>
 #include <string.h>
+#include<QSplitter>
 
 QString path;   // 定义一个全局变量存放地址
 // 字符编码指针
@@ -63,8 +67,65 @@ MainWindow::MainWindow(QWidget *parent)
 
      /************ 主体：文本编辑框 ************/
     textEdit = new QsciScintilla;
-    this->setCentralWidget(textEdit);
+    textEdit->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    textEdit->setMinimumWidth(0);
 
+    tree1 = new Tree; // 使用您创建的树形部件类名
+
+
+    // 创建地图文本框
+    QTextEdit *graphicText = new QTextEdit;
+    graphicText->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+
+    // 创建一个垂直布局管理器
+    QVBoxLayout *mainLayout = new QVBoxLayout;
+
+    // 创建一个水平布局管理器，用于容纳文件树和右边所有
+    QHBoxLayout *horizontalLayout = new QHBoxLayout;
+
+    // 创建一个小QSplitter，用于容纳地图代码框和代码文件框
+    QSplitter *smallsplitter = new QSplitter(Qt::Horizontal);;
+
+    smallsplitter->addWidget(textEdit);
+
+    smallsplitter->addWidget(graphicText);
+
+//    QList<int> smallsizes;
+//    smallsizes << 4 << 1;
+//    smallsplitter->setSizes(smallsizes);
+    smallsplitter->setStretchFactor(0, 7); // 第一个部分（textEdit）的伸缩因子为7
+    smallsplitter->setStretchFactor(1, 1); // 第二个部分（graphicText）的伸缩因子为1
+
+    // 将树形部件添加到水平布局中
+    horizontalLayout->addWidget(tree1,1);
+
+    // 创建一个QSplitter来容纳地图和代码编辑器的整体和输出结果文本框
+    QSplitter *splitter = new QSplitter(Qt::Vertical);
+
+    // 添加smallQSplitter到QSplitter
+    splitter->addWidget(smallsplitter);
+
+
+    // 创建输出结果文本框
+    QTextEdit *outputText = new QTextEdit;
+    outputText->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    // 添加输出结果文本框到QSplitter
+    splitter->addWidget(outputText);
+//    QList<int> sizes;
+//    sizes << 1 <<6;
+//    splitter->setSizes(sizes);
+    splitter->setStretchFactor(0, 11); // 第一个部分（textEdit）的伸缩因子为7
+    splitter->setStretchFactor(1, 1); // 第二个部分（graphicText）的伸缩因子为1
+    // 将QSplitter添加到水平布局中
+    horizontalLayout->addWidget(splitter,4);
+    // 创建一个占位的小部件到垂直布局中，以确保输出结果文本框位于底部
+    mainLayout->addLayout(horizontalLayout);
+    // 创建一个中央部件（QWidget）来容纳布局
+    QWidget *centralWidget = new QWidget;
+    centralWidget->setContentsMargins(0, 0, 0, 0);
+    centralWidget->setLayout(mainLayout);
+    // 将中央部件设置为主窗口的中央部件
+    setCentralWidget(centralWidget);
     /************ 主体：词法编辑器 ************/
     textLexer = new QsciLexerCPP;
     textLexer->setColor(QColor("#008000"),QsciLexerCPP::Comment);
@@ -155,9 +216,9 @@ MainWindow::MainWindow(QWidget *parent)
     findLineEdit = new QLineEdit(findDlg);
     QPushButton *btn1= new QPushButton(tr("查找上一个"), findDlg);
     //垂直布局
-    QVBoxLayout *layout= new QVBoxLayout(findDlg);
-    layout->addWidget(findLineEdit);
-    layout->addWidget(btn1);
+    QVBoxLayout *layout1= new QVBoxLayout(findDlg);
+    layout1->addWidget(findLineEdit);
+    layout1->addWidget(btn1);
     //将“查找下一个”按钮与自定义showFindText槽函数连接
     connect(btn1, SIGNAL(clicked()), this, SLOT(showFindText()));
 
@@ -182,6 +243,7 @@ void MainWindow::creatMenu()
     this->setMinimumSize(400,300);      //最小大小
     this->resize(800,600);              //默认大小
     connect(file_new,SIGNAL(triggered(bool)),this,SLOT(FileNew()));
+
 
 
     //向文件菜单中添加行为
@@ -458,7 +520,18 @@ bool MainWindow::saveFile(const QString &fileName){
     //获得文件的标准路径
     curFile = QFileInfo(fileName).canonicalFilePath();
     setWindowTitle(curFile);
-     path=curFile;
+    path=curFile;
+     QString curFile = QFileInfo(fileName).canonicalFilePath();
+     QDir currentDir(curFile);
+     currentDir.cdUp(); // 切换到上级目录
+     QString parentDir = currentDir.canonicalPath(); // 获取上级目录的规范路径
+     int number = tree1->root->childCount();
+     for(int i = number - 1; i >= 0; i--){
+         tree1->root->removeChild(tree1->root->child(i));
+     }
+     tree1->root->setText(0,parentDir);
+     qDebug()<<parentDir;
+     QFileInfoList filelist = tree1->allfile(tree1->root,parentDir);
     return true;
 }
 
@@ -477,6 +550,17 @@ bool MainWindow::openFile(const QString &fileName)
     }
     curFile = QFileInfo(fileName).canonicalFilePath();
     setWindowTitle(curFile);
+    QString curFile = QFileInfo(fileName).canonicalFilePath();
+    QDir currentDir(curFile);
+    currentDir.cdUp(); // 切换到上级目录
+    QString parentDir = currentDir.canonicalPath(); // 获取上级目录的规范路径
+    int number = tree1->root->childCount();
+    for(int i = number - 1; i >= 0; i--){
+        tree1->root->removeChild(tree1->root->child(i));
+    }
+    tree1->root->setText(0,parentDir);
+    qDebug()<<parentDir;
+    QFileInfoList filelist = tree1->allfile(tree1->root,parentDir);
     return true;
 
 }

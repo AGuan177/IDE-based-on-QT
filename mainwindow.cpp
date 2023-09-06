@@ -571,6 +571,17 @@ void MainWindow::op()
     //    qDebug() << "yes";
     if(tree1->filePath != "null"){
         createTab();
+        int currentTabIndex = tabWidget->currentIndex();
+        QsciScintilla *tabScintilla = tabScintillaMap[tabWidget->tabText(currentTabIndex)];
+        int lastSlashPos = tree1->filePath.lastIndexOf(QRegExp("/"));
+        QString fileName;
+            if (lastSlashPos != -1)
+                fileName = tree1->filePath.mid(lastSlashPos + 1);
+            else
+                fileName = tree1->filePath;
+        tabScintillaMap.remove(tabWidget->tabText(currentTabIndex));
+        tabScintillaMap.insert(fileName, tabScintilla);
+        tabWidget->setTabText(currentTabIndex, fileName);
         qDebug()<<"open  "<<tree1->filePath;
         QFile f(tree1->filePath);
         if(f.open(QIODevice::ReadWrite)){

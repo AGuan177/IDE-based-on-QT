@@ -84,6 +84,7 @@ public:
     QAction* undoe;
     QAction* redoe;
     QAction* changeTheme;
+    QAction* autoFormat;
 
     QLabel* fontTypeLabel;
     QFontComboBox* fontTypeCmb;
@@ -139,6 +140,7 @@ private slots:
     void onTabClicked(int index);
     void onTabDoubleClicked(int index);
     void openThemeDialog();
+    void doAutoFormat();
 
     //自定义槽函数-查找
     void showFindText();

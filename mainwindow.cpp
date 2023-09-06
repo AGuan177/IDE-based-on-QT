@@ -230,6 +230,7 @@ void MainWindow::createMenu()
     undoe = EditMenu->addAction(QIcon(":/.png"),"撤销");
     redoe = EditMenu->addAction(QIcon(":/.png"),"重做");
     changeTheme = EditMenu->addAction(QIcon(":/icon/icon/fontSet.png"),"主题");
+    autoFormat = EditMenu->addAction(QIcon(":/icon/icon/fontSet.png"),"主题");
 
     //向编译菜单中添加行为
     compilefile = CompileMenu->addAction(QIcon(":/icon/icon/copy.png"),"编译");
@@ -263,6 +264,9 @@ void MainWindow::createTool()
     toolBar->addSeparator();
     toolBar->addAction(changeTheme);
     toolBar->addSeparator();
+    toolBar->addAction(autoFormat);
+    toolBar->addSeparator();
+
 
 
 
@@ -319,6 +323,10 @@ void MainWindow::connectImpl()
 
     //修改主题的槽函数
     connect(changeTheme, &QAction::triggered, this, &MainWindow::openThemeDialog);
+
+    //修改主题的槽函数
+    connect(autoFormat, &QAction::triggered, this, &MainWindow::doAutoFormat);
+
 
     //信号与槽-新建文件
     connect(newfile,QAction::triggered,this,MainWindow::newFile);
@@ -408,15 +416,25 @@ void MainWindow::connectImpl()
 
 /*************  自定义槽函数的实现 *************/
 
+void MainWindow::doAutoFormat(){
+
+    QMessageBox messageBox;
+    messageBox.setText("磊哥在这里写代码");
+    messageBox.exec();
+
+}
+
 // 换主题
 void MainWindow::setTheme(){
 
     qDebug()<<"ok0";
 
     //先换其他三块的主题配色
+
     minimapView->setStyleSheet("background-color: "+curTheme["o_minimap_bgc"]+"; color:"+curTheme["o_minimap_fontc"]+";");
     tree1->setStyleSheet("background-color: "+curTheme["o_tree_bgc"]+"; color:"+curTheme["o_tree_fontc"]+";");
-    outputText->setStyleSheet("background-color: "+curTheme["o_output_bgc"]+"; color:"+curTheme["o_output_fontc"]+";");
+    //outputText->setStyleSheet("background-color: "+curTheme["o_output_bgc"]+"; color:"+curTheme["o_output_fontc"]+";");
+
     qDebug()<<"ok1";
 
     //再换词法编辑器lexer
@@ -507,7 +525,6 @@ void MainWindow::setScintilla(QsciScintilla *scintilla){
 
     globalLexer->setPaper(curTheme["l_paper"]);
 }
-
 
 void MainWindow::openThemeDialog()
 {

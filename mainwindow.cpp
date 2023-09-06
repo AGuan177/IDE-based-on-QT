@@ -4,11 +4,13 @@
 #include "vector"
 
 int openTabNum = 0;
-QString path;                   // 定义一个全局变量存放地址
-QTextCodec *codec;              // 字符编码指针
-QsciLexer *globalLexer;         // 全局的格式
-QsciScintilla *curScintilla;    // 当前的火花
+QString path;                                   // 定义一个全局变量存放地址
+QTextCodec *codec;                              // 字符编码指针
+QsciLexer *globalLexer;                         // 全局的格式
+QsciScintilla *curScintilla;                    // 当前的火花
+QMap<QString, QString>curTheme;                 // 全局主题设置
 QMap<QString, QsciScintilla*> tabScintillaMap;  // tab与scintilla的对应
+
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -30,6 +32,7 @@ MainWindow::MainWindow(QWidget *parent)
     tcf = new QTextCharFormat;
 
     codec = QTextCodec::codecForName("GBK");
+
 
     /************ 全局词法编辑器 ************/
 
@@ -95,7 +98,7 @@ MainWindow::MainWindow(QWidget *parent)
     splitter->addWidget(smallsplitter);
 
     // 创建输出结果文本框
-    QTextEdit *outputText = new QTextEdit;
+    QTableWidget *outputText = new QTableWidget;
     outputText->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     // 添加输出结果文本框到QSplitter
     splitter->addWidget(outputText);
@@ -139,6 +142,9 @@ MainWindow::MainWindow(QWidget *parent)
     connect(btn3, SIGNAL(clicked()), this, SLOT(findNext()));
     connect(btn2, SIGNAL(clicked()), this, SLOT(changeText()));
 
+    curTheme = Theme::Default;
+    setTheme();
+
 }
 void MainWindow::createTab() {
 
@@ -180,59 +186,10 @@ void MainWindow::createTab() {
 
     // 切换到最新的这个 tab
     tabWidget->setCurrentIndex(tabWidget->count() - 1);
+
+    setScintilla(newScintilla);
+
     curScintilla = newScintilla;
-
-    // 设置自动补全，自动补全所有地方出现的
-    newScintilla->setAutoCompletionSource(QsciScintilla::AcsAPIs);
-    newScintilla->setAutoCompletionThreshold(2);
-
-    // 设置严格的括号匹配
-    newScintilla->setBraceMatching(QsciScintilla::StrictBraceMatch);
-
-    // 设置为UTF-8编码
-    newScintilla->setUtf8(true);
-
-    // 设置自动补全大小写敏感
-    newScintilla->setAutoCompletionCaseSensitivity(true);
-
-    // 设置自动缩进
-    newScintilla->setAutoIndent(true);
-
-    // 启用显示缩进引导线
-    newScintilla->setIndentationGuides(true);
-
-    // 设置当前行的光标宽度和颜色
-    newScintilla->setCaretWidth(2); // 光标宽度，0表示不显示光标
-    newScintilla->setCaretForegroundColor(QColor("darkCyan")); // 光标颜色
-    newScintilla->setCaretLineVisible(true); // 是否高亮显示光标所在行
-    newScintilla->setCaretLineBackgroundColor(Qt::lightGray); // 光标所在行背景颜色
-
-    // 设置选中文本的背景和前景颜色
-    newScintilla->setSelectionBackgroundColor(Qt::black);
-    newScintilla->setSelectionForegroundColor(Qt::white);
-
-    // 设置未匹配括号的颜色
-    newScintilla->setUnmatchedBraceForegroundColor(Qt::blue);
-    newScintilla->setBraceMatching(QsciScintilla::SloppyBraceMatch);
-
-    // 设置左侧行号栏的宽度等
-    QFont font("Courier", 10, QFont::Normal);
-    QFontMetrics fontmetrics = QFontMetrics(font);
-    newScintilla->setMarginWidth(0, fontmetrics.width("0000"));
-    newScintilla->setMarginLineNumbers(0, true);
-    newScintilla->setBraceMatching(QsciScintilla::SloppyBraceMatch); // 括号匹配
-    newScintilla->setTabWidth(4);
-    QFont margin_font;
-    margin_font.setFamily("SimSun");
-    margin_font.setPointSize(11);
-    newScintilla->setMarginsFont(margin_font); // 设置页边字体
-    newScintilla->setMarginType(0, QsciScintilla::NumberMargin); // 设置标号为0的页边显示行号
-    newScintilla->setMarginsBackgroundColor(Qt::gray); // 显示行号背景颜色
-    newScintilla->setMarginsForegroundColor(Qt::white);
-
-    // 设置折叠样式和折叠栏颜色
-    newScintilla->setFolding(QsciScintilla::BoxedTreeFoldStyle);
-    newScintilla->setFoldMarginColors(Qt::gray, Qt::lightGray);
 
 }
 void MainWindow::createMenu()
@@ -272,6 +229,7 @@ void MainWindow::createMenu()
     fontSet = EditMenu->addAction(QIcon(":/icon/icon/fontSet.png"),"字体设置");
     undoe = EditMenu->addAction(QIcon(":/.png"),"撤销");
     redoe = EditMenu->addAction(QIcon(":/.png"),"重做");
+    changeTheme = EditMenu->addAction(QIcon(":/icon/icon/fontSet.png"),"主题");
 
     //向编译菜单中添加行为
     compilefile = CompileMenu->addAction(QIcon(":/icon/icon/copy.png"),"编译");
@@ -303,11 +261,13 @@ void MainWindow::createTool()
     toolBar->addSeparator();
     toolBar->addAction(seekText);
     toolBar->addSeparator();
+    toolBar->addAction(changeTheme);
+    toolBar->addSeparator();
 
 
 
     /************ 工具栏的字体设置 ************/
-
+/*
     //设置“字体”标签
     fontTypeLabel = new QLabel("字体：");
     toolBar->addWidget(fontTypeLabel);
@@ -344,11 +304,7 @@ void MainWindow::createTool()
     underlineBtn->setIcon(QIcon(":/icon/icon/underline.png"));
     toolBar->addWidget(underlineBtn);
 
-    //    qDebug() << "addwidget";
-
-
-    //    qDebug() << "Highligher";
-
+    */
 }
 
 /************* 信号与槽的连接 *************/
@@ -358,9 +314,11 @@ void MainWindow::connectImpl()
     //单击某个tab的槽函数
     connect(tabWidget->tabBar(), SIGNAL(tabBarClicked(int)), this, SLOT(onTabClicked(int)));
 
-    //单击某个tab的槽函数
+    //双击某个tab的槽函数
     connect(tabWidget->tabBar(), SIGNAL(tabBarDoubleClicked(int)), this, SLOT(onTabDoubleClicked(int)));
 
+    //修改主题的槽函数
+    connect(changeTheme, &QAction::triggered, this, &MainWindow::openThemeDialog);
 
     //信号与槽-新建文件
     connect(newfile,QAction::triggered,this,MainWindow::newFile);
@@ -422,7 +380,7 @@ void MainWindow::connectImpl()
     });
 
     /************ 工具栏的字体设置 ************/
-
+/*
     //信号与槽-字体改变
     connect(fontTypeCmb,QFontComboBox::currentFontChanged,this,MainWindow::setFont);
 
@@ -437,6 +395,8 @@ void MainWindow::connectImpl()
     connect(underlineBtn,QToolButton::clicked,this,MainWindow::setUnderline);
     //    (QTreeWidgetItem *item, int column)
 
+*/
+
 
     //信号与槽-文件编译
     connect(compilefile,QAction::triggered,this,MainWindow::compile_file);
@@ -447,8 +407,155 @@ void MainWindow::connectImpl()
 }
 
 /*************  自定义槽函数的实现 *************/
-//mainwindow.cpp
-#include <QVector>
+
+// 换主题
+void MainWindow::setTheme(){
+
+    qDebug()<<"ok0";
+
+    //先换其他三块的主题配色
+    minimapView->setStyleSheet("background-color: "+curTheme["o_minimap_bgc"]+"; color:"+curTheme["o_minimap_fontc"]+";");
+    tree1->setStyleSheet("background-color: "+curTheme["o_tree_bgc"]+"; color:"+curTheme["o_tree_fontc"]+";");
+    outputText->setStyleSheet("background-color: "+curTheme["o_output_bgc"]+"; color:"+curTheme["o_output_fontc"]+";");
+    qDebug()<<"ok1";
+
+    //再换词法编辑器lexer
+    globalLexer->setColor(curTheme["l_color"]);                                    //前景色
+    globalLexer->setPaper(curTheme["l_paper"]);                                    //背景色
+    globalLexer->setColor(QColor(curTheme["l_comment"]),QsciLexerCPP::Comment);
+    globalLexer->setColor(QColor(curTheme["l_comment"]), QsciLexerCPP::CommentLine);
+    globalLexer->setColor(QColor(curTheme["l_comment"]), QsciLexerCPP::CommentLineDoc);
+    globalLexer->setColor(QColor(curTheme["l_quote"]), QsciLexerCPP::DoubleQuotedString);        //设置双引号内容
+    globalLexer->setColor(QColor(curTheme["l_quote"]), QsciLexerCPP::SingleQuotedString);        //设置双引号内容
+    globalLexer->setColor(QColor(curTheme["l_keyword"]), QsciLexerCPP::Keyword);                       //设置关键词
+    globalLexer->setColor(QColor(curTheme["l_number"]), QsciLexerCPP::Number);                          //设置数字
+    globalLexer->setColor(QColor(curTheme["l_preprocessor"]),QsciLexerCPP::PreProcessor);               //预处理
+    qDebug()<<"ok2";
+
+
+    //最后遍历所有的scintilla对象
+    foreach (const QString& tabName, tabScintillaMap.keys()) {
+        QsciScintilla* scintilla = tabScintillaMap.value(tabName); // 获取QsciScintilla对象
+        scintilla->setLexer(globalLexer);
+        // 设置选中文本的字体与背景
+        scintilla->setSelectionForegroundColor(curTheme["s_select_fontc"]);
+        scintilla->setSelectionBackgroundColor(curTheme["s_select_bgc"]);
+        // 行号栏的字体与背景
+        scintilla->setMarginsForegroundColor(curTheme["s_margin_fontc"]);
+        scintilla->setMarginsBackgroundColor(curTheme["s_margin_bgc"]);
+        // 设置匹配的括号的字体与背景
+        scintilla->setMatchedBraceForegroundColor(curTheme["s_match_fontc"]);
+        scintilla->setMatchedBraceBackgroundColor(curTheme["s_match_bgc"]);
+        // 设置未匹配的括号的字体与背景
+        scintilla->setUnmatchedBraceForegroundColor(curTheme["s_unmatch_fontc"]);
+        scintilla->setUnmatchedBraceBackgroundColor(curTheme["s_unmatch_bgc"]);
+        // 设置折叠区域的背景色
+        scintilla->setFoldMarginColors(curTheme["s_folding_bgc"], curTheme["s_folding_bgc"]);
+    }
+    qDebug()<<"ok3";
+
+    globalLexer->setPaper(curTheme["l_paper"]);
+}
+
+void MainWindow::setScintilla(QsciScintilla *scintilla){
+
+    scintilla->setLexer(globalLexer);
+    // 设置自动补全，自动补全所有地方出现的
+    scintilla->setAutoCompletionSource(QsciScintilla::AcsAPIs);
+    scintilla->setAutoCompletionThreshold(2);
+    // 设置严格的括号匹配
+    scintilla->setBraceMatching(QsciScintilla::StrictBraceMatch);
+    // 设置为UTF-8编码
+    scintilla->setUtf8(true);
+    // 设置自动补全大小写敏感
+    scintilla->setAutoCompletionCaseSensitivity(true);
+    // 设置自动缩进
+    scintilla->setAutoIndent(true);
+    // 启用显示缩进引导线
+    scintilla->setIndentationGuides(true);
+    // 设置当前行的光标宽度和颜色
+    scintilla->setCaretWidth(2); // 光标宽度，0表示不显示光标
+    scintilla->setCaretForegroundColor(QColor("darkCyan")); // 光标颜色
+    scintilla->setCaretLineVisible(true); // 是否高亮显示光标所在行
+    // 设置左侧行号栏的宽度等
+    QFont font("Consolas", 10, QFont::Normal);
+    QFontMetrics fontmetrics = QFontMetrics(font);
+    scintilla->setMarginWidth(0, fontmetrics.width("0000"));
+    scintilla->setMarginLineNumbers(0, true);
+    // 启用匹配括号的高亮显示
+    scintilla->setBraceMatching(QsciScintilla::StrictBraceMatch);
+    scintilla->setTabWidth(4);
+    QFont margin_font;
+    margin_font.setFamily("Consolas");
+    margin_font.setPointSize(11);
+    scintilla->setMarginsFont(QFont("Consolas")); // 设置页边字体
+    scintilla->setMarginType(0, QsciScintilla::NumberMargin); // 设置标号为0的页边显示行号
+    // 设置选中文本的字体与背景
+    scintilla->setSelectionForegroundColor(curTheme["s_select_fontc"]);
+    scintilla->setSelectionBackgroundColor(curTheme["s_select_bgc"]);
+    // 行号栏的字体与背景
+    scintilla->setMarginsForegroundColor(curTheme["s_margin_fontc"]);
+    scintilla->setMarginsBackgroundColor(curTheme["s_margin_bgc"]);
+    // 设置匹配的括号的字体与背景
+    scintilla->setMatchedBraceForegroundColor(curTheme["s_match_fontc"]);
+    scintilla->setMatchedBraceBackgroundColor(curTheme["s_match_bgc"]);
+    // 设置未匹配的括号的字体与背景
+    scintilla->setUnmatchedBraceForegroundColor(curTheme["s_unmatch_fontc"]);
+    scintilla->setUnmatchedBraceBackgroundColor(curTheme["s_unmatch_bgc"]);
+    // 设置折叠区域的背景色
+    scintilla->setFoldMarginColors(curTheme["s_folding_bgc"], curTheme["s_folding_bgc"]);
+
+    globalLexer->setPaper(curTheme["l_paper"]);
+}
+
+
+void MainWindow::openThemeDialog()
+{
+    // 创建主题选择对话框
+    QDialog themeDialog(this);
+    themeDialog.setWindowTitle("主题选择");
+
+    // 创建九宫格布局
+    QGridLayout *gridLayout = new QGridLayout(&themeDialog);
+
+    // 主题名称列表
+    QStringList themes = {
+        "主题1", "主题2", "主题3",
+        "主题4", "主题5", "主题6",
+        "主题7", "主题8", "主题9"
+    };
+
+    // 创建按钮并添加到九宫格布局中
+    for (int i = 0; i < 3; ++i) {
+        for (int j = 0; j < 3; ++j) {
+            int themeIndex = i * 3 + j; // 主题索引
+            QPushButton *themeButton = new QPushButton(themes[themeIndex]);
+
+            // 设置按钮为圆形
+            int buttonSize = 120; // 按钮的大小，根据需要调整
+            themeButton->setFixedSize(buttonSize, buttonSize);
+            themeButton->setStyleSheet("QPushButton {"
+                                       "    border-radius: " + QString::number(buttonSize / 2) + "px;" // 半径为宽度的一半
+                                       "    background-color: lightGray;" // 按钮背景颜色
+                                       "}"
+                                       "QPushButton:hover {"
+                                       "    background-color: gray;" // 鼠标划过颜色
+                                       "}"
+                                       "QPushButton:pressed {"
+                                       "    background-color: darkGray;" // 按下颜色
+                                       "}");
+
+            connect(themeButton, &QPushButton::clicked, [themeIndex, this]() {
+                            QString themeName = "hime";
+
+                        });
+            gridLayout->addWidget(themeButton, i, j);
+        }
+    }
+
+    // 显示对话框
+    themeDialog.exec();
+}
 
 int MainWindow::KMPMatch( QString &text, QString &pattern) {
     int m = text.length();
@@ -814,8 +921,6 @@ void MainWindow::findNext() {
         curScintilla->SendScintilla(QsciScintillaBase::SCI_SETSEL, selectedStart, selectedEnd);
     }
 }
-
-
 
 
 

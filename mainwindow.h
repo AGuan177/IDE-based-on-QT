@@ -12,6 +12,7 @@
 #include <QComboBox>
 #include <QToolButton>
 #include <QFontComboBox>
+#include <QVector>
 #include <QToolBar>
 #include <QStatusBar>
 #include <QDebug>
@@ -42,6 +43,7 @@
 #include <QSplitter>
 #include <QFileInfo>
 #include <QtGui/QGuiApplication>
+#include <QTableWidget>
 #include <QGraphicsTextItem>
 #include <QInputDialog>
 #include <QUrl>
@@ -50,6 +52,7 @@
 #include <QScrollBar>
 #include "tree.h"
 #include "keywords.h"
+#include "Themes.h"
 
 
 class QLineEdit;
@@ -80,6 +83,7 @@ public:
     QAction* compilefile;
     QAction* undoe;
     QAction* redoe;
+    QAction* changeTheme;
 
     QLabel* fontTypeLabel;
     QFontComboBox* fontTypeCmb;
@@ -107,6 +111,7 @@ private:
     //单行输入框
     QLineEdit *findLineEdit;
 
+    QTableWidget *outputText;
     QGraphicsView *minimapView;
     QTabWidget *tabWidget;  //多文件窗体
     QTextEdit *te;
@@ -124,7 +129,7 @@ private slots:
     void createMenu();
     void createTool();
     void createTab();
-    void highlightObject(QsciScintilla *editor, int start, int end);
+
     //所有的信号与槽连接函数
     void connectImpl();
 
@@ -133,10 +138,15 @@ private slots:
     //自定义槽函数：单机标签页
     void onTabClicked(int index);
     void onTabDoubleClicked(int index);
+    void openThemeDialog();
 
     //自定义槽函数-查找
     void showFindText();
     int KMPMatch(QString &text, QString &pattern);
+
+    //自定义槽函数：设置主题
+    void setTheme();
+    void setScintilla(QsciScintilla *scintilla);
 
     //自定义槽函数-新建操作
     void newFile();
@@ -166,5 +176,6 @@ private slots:
     void redo();
     void changeText();
     void findNext();
+
 };
 #endif // MAINWINDOW_H

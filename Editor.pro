@@ -26,6 +26,7 @@ SOURCES += \
 HEADERS += \
     keywords.h \
     mainwindow.h \
+    themes.h \
     tree.h
 
 FORMS += \

@@ -1,7 +1,7 @@
 
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
-
+#include "vector"
 
 int openTabNum = 0;
 QString path;                   // 定义一个全局变量存放地址
@@ -64,6 +64,7 @@ MainWindow::MainWindow(QWidget *parent)
     minimapView = new QGraphicsView;
     minimapView->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     minimapView->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    minimapView->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 
     createMenu();
     createTool();
@@ -124,15 +125,18 @@ MainWindow::MainWindow(QWidget *parent)
     findLineEdit = new QLineEdit(findDlg);
     changeEdit = new QLineEdit(findDlg);
     QPushButton *btn1= new QPushButton(tr("查找第一个"), findDlg);
+    QPushButton *btn3= new QPushButton(tr("查找下一个"), findDlg);
     QPushButton *btn2= new QPushButton(tr("替换全部"), findDlg);
     //垂直布局
     QVBoxLayout *layout1= new QVBoxLayout(findDlg);
     layout1->addWidget(findLineEdit);
     layout1->addWidget(changeEdit);
     layout1->addWidget(btn1);
+    layout1->addWidget(btn3);
     layout1->addWidget(btn2);
     //将“查找下一个”按钮与自定义showFindText槽函数连接
     connect(btn1, SIGNAL(clicked()), this, SLOT(showFindText()));
+    connect(btn3, SIGNAL(clicked()), this, SLOT(findNext()));
     connect(btn2, SIGNAL(clicked()), this, SLOT(changeText()));
 
 }
@@ -443,6 +447,58 @@ void MainWindow::connectImpl()
 }
 
 /*************  自定义槽函数的实现 *************/
+//mainwindow.cpp
+#include <QVector>
+
+int MainWindow::KMPMatch( QString &text, QString &pattern) {
+    int m = text.length();
+    int n = pattern.length();
+
+    if (n == 0) {
+        return 0; // 如果查找文本为空，返回0位置
+    }
+
+    QVector<int> lps(n); // 部分匹配表
+
+    // 构建部分匹配表
+    int len = 0; // 当前匹配的字符数
+    lps[0] = 0; // 第一个字符的部分匹配值总是0
+
+    for (int i = 1; i < n; i++) {
+        while (len > 0 && pattern[i] != pattern[len]) {
+            len = lps[len - 1];
+        }
+
+        if (pattern[i] == pattern[len]) {
+            len++;
+        }
+
+        lps[i] = len;
+    }
+
+    // 开始匹配
+    int i = 0; // 指向text的指针
+    int j = 0; // 指向pattern的指针
+
+    while (i < m) {
+        if (pattern[j] == text[i]) {
+            i++;
+            j++;
+        }
+
+        if (j == n) {
+            return i - j; // 找到匹配项，返回匹配的位置
+        } else if (i < m && pattern[j] != text[i]) {
+            if (j != 0) {
+                j = lps[j - 1];
+            } else {
+                i++;
+            }
+        }
+    }
+
+    return -1; // 未找到匹配项
+}
 
 void MainWindow::showMinimap() {
     // 获取 QScintilla 控件的内容
@@ -512,11 +568,13 @@ void MainWindow::showMinimap() {
     minimapView->setAlignment(Qt::AlignTop);
 
     // 如果图像高度大于 MinimapView 的高度，显示垂直滚动条
+
+    /*
     if (textSize.height() * scaleFactorY > minimapView->viewport()->height()) {
         minimapView->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
     } else {
         minimapView->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-    }
+    }*/
 }
 // 单击Tab：切换到当前这个tab
 void MainWindow::onTabClicked(int index) {
@@ -570,18 +628,6 @@ void MainWindow::op()
 {
     //    qDebug() << "yes";
     if(tree1->filePath != "null"){
-        createTab();
-        int currentTabIndex = tabWidget->currentIndex();
-        QsciScintilla *tabScintilla = tabScintillaMap[tabWidget->tabText(currentTabIndex)];
-        int lastSlashPos = tree1->filePath.lastIndexOf(QRegExp("/"));
-        QString fileName;
-            if (lastSlashPos != -1)
-                fileName = tree1->filePath.mid(lastSlashPos + 1);
-            else
-                fileName = tree1->filePath;
-        tabScintillaMap.remove(tabWidget->tabText(currentTabIndex));
-        tabScintillaMap.insert(fileName, tabScintilla);
-        tabWidget->setTabText(currentTabIndex, fileName);
         qDebug()<<"open  "<<tree1->filePath;
         QFile f(tree1->filePath);
         if(f.open(QIODevice::ReadWrite)){
@@ -740,14 +786,37 @@ bool MainWindow::openFile(const QString &fileName)
 void MainWindow::showFindText() {
     // 获取查找文本
     QString searchText = findLineEdit->text();
-    qDebug()<< searchText;// 获取查找文本框的文本
-    int foundPos = curScintilla->findFirst(searchText, false,false, false, true); // 在文本中查找匹配项
-    qDebug()<<  foundPos;
-    if (foundPos != -1) {
-        curScintilla->SendScintilla(QsciScintillaBase::SCI_SETSEL, foundPos, foundPos + searchText.length()); // 选中匹配项
-    }
+    // 获取查找文本框的文本
+    QString text = curScintilla->text();
 
+    int matchIndex = KMPMatch(text, searchText);
+
+    if (matchIndex != -1) {
+        curScintilla->SendScintilla(QsciScintillaBase::SCI_SETSEL, matchIndex, matchIndex + searchText.length());
+    }
 }
+
+void MainWindow::findNext() {
+    // 获取查找文本
+    QString searchText = findLineEdit->text();
+    // 获取查找文本框的文本
+    QString text = curScintilla->text();
+
+    int cursorPosition = curScintilla->SendScintilla(QsciScintillaBase::SCI_GETCURRENTPOS);
+
+    // 从当前光标位置开始查找
+    QString remainingText = text.mid(cursorPosition);
+    int matchIndex = KMPMatch(remainingText, searchText);
+
+    if (matchIndex != -1) {
+        int selectedStart = cursorPosition + matchIndex;
+        int selectedEnd = selectedStart + searchText.length();
+        curScintilla->SendScintilla(QsciScintillaBase::SCI_SETSEL, selectedStart, selectedEnd);
+    }
+}
+
+
+
 
 
 void MainWindow::changeText(){

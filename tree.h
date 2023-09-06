@@ -29,7 +29,7 @@ public slots:
     void DC(QTreeWidgetItem *item, int column);
 
 signals:
-    void DCC();
+//    void DCC();
 };
 #endif // MAINWINDOW_H
 

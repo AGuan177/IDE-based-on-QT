@@ -124,6 +124,7 @@ private slots:
     void createMenu();
     void createTool();
     void createTab();
+    void highlightObject(QsciScintilla *editor, int start, int end);
     //所有的信号与槽连接函数
     void connectImpl();
 
@@ -135,6 +136,7 @@ private slots:
 
     //自定义槽函数-查找
     void showFindText();
+    int KMPMatch(QString &text, QString &pattern);
 
     //自定义槽函数-新建操作
     void newFile();
@@ -163,5 +165,6 @@ private slots:
     void undo();
     void redo();
     void changeText();
+    void findNext();
 };
 #endif // MAINWINDOW_H

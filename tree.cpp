@@ -135,7 +135,7 @@ void Tree::DC(QTreeWidgetItem *item, int column)
     }
     filePath = path1;
 //    qDebug()<<filePath;
-    emit DCC();
+//    emit DCC();
     qDebug()<<filePath;
     return;
 }

@@ -1,4 +1,4 @@
-QT       += core gui
+QT       += core gui svg
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -19,12 +19,18 @@ INCLUDEPATH += $$PWD/Qsci
 LIBS += -L$$PWD -lqscintilla2_qt5d
 
 SOURCES += \
+    cppcoderunner.cpp \
+    cppcompileinfo.cpp \
     main.cpp \
     mainwindow.cpp \
     tree.cpp
 
 HEADERS += \
+    cppcoderunner.h \
+    cppcompileinfo.h \
+    keywords.h \
     mainwindow.h \
+    themes.h \
     tree.h
 
 FORMS += \

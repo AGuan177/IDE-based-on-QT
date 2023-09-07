@@ -6,6 +6,7 @@
 #include"QFileInfoList"
 #include"QTranslator"
 
+
 QT_BEGIN_NAMESPACE
 namespace Ui { class Tree; }
 QT_END_NAMESPACE
@@ -28,7 +29,7 @@ public slots:
     void DC(QTreeWidgetItem *item, int column);
 
 signals:
-    void DCC();
+//    void DCC();
 };
 #endif // MAINWINDOW_H
 

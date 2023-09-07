@@ -1,6 +1,8 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
+#include <QTableWidget>
+#include <QProcess>
 #include <Qsci/qsciscintilla.h>
 #include <Qsci/qsciapis.h>
 #include <Qsci/qscilexercpp.h>
@@ -49,10 +51,14 @@
 #include <QUrl>
 #include <QDesktopServices>
 #include <QSvgGenerator>
+#include <QTableWidget>
+#include <QHeaderView>
 #include <QScrollBar>
 #include "tree.h"
 #include "keywords.h"
 #include "Themes.h"
+#include "cppcoderunner.h"
+#include "cppcompileinfo.h"
 
 
 class QLineEdit;
@@ -81,11 +87,12 @@ public:
     QAction* seekText;
     QAction* fontSet;
     QAction* compilefile;
+    QAction* compileAndRun;
+    QAction* runfile;
     QAction* undoe;
     QAction* redoe;
     QAction* changeTheme;
     QAction* autoFormat;
-
     QLabel* fontTypeLabel;
     QFontComboBox* fontTypeCmb;
     QLabel* fontSizeLabel;
@@ -99,8 +106,14 @@ public:
     Tree * tree1;
     QTimer* timi;
 
+
+    QMenuBar *menuBar1;
+    QToolBar *toolBar = addToolBar("Main Toolbar");
+
+
 private:
     Ui::MainWindow *ui;
+    QTableWidget *outputTable;
 
     //为真表示文件没有保存过，为假表示文件已经被保存过了
     bool isUnititled;
@@ -112,6 +125,12 @@ private:
     //单行输入框
     QLineEdit *findLineEdit;
 
+
+    //minimap的四个对象
+    QTextDocument textDocument;
+    QPixmap codePixmap;
+    QGraphicsPixmapItem *pixmapItem;
+    QGraphicsScene *scene;
     QTableWidget *outputText;
     QGraphicsView *minimapView;
     QTabWidget *tabWidget;  //多文件窗体
@@ -162,22 +181,24 @@ private slots:
     bool saveFile(const QString &fileName);
     //自定义槽函数-打开文件
     bool openFile(const QString &fileName);
-
-    //自定义槽函数-改变字体
-    void setFont(const QFont &font);
-    //自定义槽函数-改变字号
-    void setFontSize(int index);
     //自定义槽函数-字体加粗
     void setBold();
     //自定义槽函数-字体下划线
     void setUnderline();
     //自定义槽函数-编译文件
-    void compile_file();
+    int compile_file();
+    void run_file();
+    void compile_and_run();
     void FileNew();
     void undo();
     void redo();
     void changeText();
     void findNext();
+    void changeThis();
+    void findLast();
+    //自定义槽函数-显示编译错误
+    void displayCompileErr(cppCompileInfo* info);
+    void focusOnPos(int row, int column);
 
 };
 #endif // MAINWINDOW_H

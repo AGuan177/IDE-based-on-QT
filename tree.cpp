@@ -20,6 +20,7 @@
 #include <QIcon>
 #include <QLabel>
 #include <QFontComboBox>
+#include <QHeaderView>
 #include <QComboBox>
 #include <QToolButton>
 #include <QStatusBar>
@@ -55,9 +56,10 @@ Tree::Tree(QWidget *parent)
 {
     treeWidget = new QTreeWidget(this);
 
-    QStringList headers;
-    headers << "Name";
-    treeWidget->setHeaderLabels(headers);
+//    QStringList headers;
+//    headers << "Name";
+//    treeWidget->setHeaderLabels(headers);
+    treeWidget->header()->hide();
     treeWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     // 设置最小最大宽度
     treeWidget->setMinimumWidth(350);

@@ -12,7 +12,7 @@ int main(int argc, char *argv[])
     timi->setInterval(400);
     timi->start();
     QObject::connect(timi, &QTimer::timeout,w,&MainWindow::op);
-    //QObject::connect(timi, &QTimer::timeout,w,&MainWindow::showMinimap);
+    QObject::connect(timi, &QTimer::timeout,w,&MainWindow::showMinimap);
     app.exec();
     return 0;
 }
